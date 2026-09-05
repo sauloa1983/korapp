@@ -24,6 +24,8 @@ class ItemResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventario';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Artículo';
 
     protected static ?string $pluralModelLabel = 'Artículos';
@@ -44,10 +46,7 @@ class ItemResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RelationManagers\WarehouseStockRelationManager::class,
-            RelationManagers\StockMovementsRelationManager::class,
-        ];
+        return [];
     }
 
     public static function getPages(): array

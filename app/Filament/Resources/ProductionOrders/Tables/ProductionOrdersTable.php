@@ -112,20 +112,6 @@ class ProductionOrdersTable
                             ->success()
                             ->send();
                     }),
-                Action::make('consumeStock')
-                    ->label('Consumir inventario')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalDescription('Descuenta del inventario la materia prima e insumos definidos como requerimientos.')
-                    ->action(function ($record): void {
-                        $record->consumeStock(auth()->id());
-                        Notification::make()
-                            ->title('Inventario descontado')
-                            ->body('Los requerimientos se registraron como salidas en el kardex.')
-                            ->success()
-                            ->send();
-                    }),
                 Action::make('codes')
                     ->label('QR / Barras')
                     ->icon('heroicon-o-qr-code')

@@ -55,8 +55,6 @@ class DatabaseSeeder extends Seeder
 
         $operarioPermissionNames = [
             'ViewAny:ProductionOrder', 'View:ProductionOrder',
-            'ViewAny:Process', 'View:Process',
-            'ViewAny:Item', 'View:Item',
             'View:EscaneoOperario',
         ];
         $this->ensurePermissions($operarioPermissionNames);

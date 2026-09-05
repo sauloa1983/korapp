@@ -51,7 +51,7 @@ class ItemForm
                             ->label('Activo')
                             ->default(true),
                     ]),
-                Section::make('Inventario y costos')
+                Section::make('Costos')
                     ->columns(2)
                     ->schema([
                         TextInput::make('stock')
@@ -59,13 +59,17 @@ class ItemForm
                             ->numeric()
                             ->required()
                             ->default(0)
-                            ->step(0.0001),
+                            ->step(0.0001)
+                            ->hidden()
+                            ->dehydrated(),
                         TextInput::make('min_stock')
                             ->label('Existencia mínima')
                             ->numeric()
                             ->required()
                             ->default(0)
-                            ->step(0.0001),
+                            ->step(0.0001)
+                            ->hidden()
+                            ->dehydrated(),
                         TextInput::make('cost')
                             ->label('Costo')
                             ->numeric()

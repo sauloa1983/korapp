@@ -2,13 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\ItemType;
 use App\Enums\ProductionOrderStatus;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
-use App\Models\Item;
 use App\Models\ProductionOrder;
-use App\Models\Purchase;
 use App\Models\Sale;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\Widget;
@@ -51,16 +48,9 @@ class DashboardSummaryCards extends Widget
             ->where('status', SaleStatus::Confirmada)
             ->whereBetween('sold_at', [$from, now()->endOfDay()])
             ->count();
-        $purchaseSpend = (float) Purchase::query()
-            ->whereBetween('ordered_at', [$from, now()->endOfDay()])
-            ->sum('total');
         $completedOrders = ProductionOrder::query()
             ->where('status', ProductionOrderStatus::Completado->value)
             ->where('updated_at', '>=', $from)
-            ->count();
-        $healthyStock = Item::query()
-            ->whereColumn('stock', '>', 'min_stock')
-            ->where('type', '!=', ItemType::ProductoTerminado->value)
             ->count();
 
         return [
@@ -79,16 +69,9 @@ class DashboardSummaryCards extends Widget
                 'icon' => 'heroicon-o-shopping-bag',
             ],
             [
-                'label' => 'Compras',
-                'value' => money($purchaseSpend),
-                'hint' => 'Gasto acumulado',
-                'tone' => 'orange',
-                'icon' => 'heroicon-o-truck',
-            ],
-            [
                 'label' => 'Órdenes completadas',
                 'value' => number_format($completedOrders),
-                'hint' => $healthyStock . ' artículos en nivel adecuado',
+                'hint' => 'En el periodo',
                 'tone' => 'blue',
                 'icon' => 'heroicon-o-check-badge',
             ],

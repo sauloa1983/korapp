@@ -305,7 +305,7 @@
         <header class="cover">
             <p class="kicker">Korapp</p>
             <h1>Tutorial de uso</h1>
-            <p>Guía práctica para el equipo: configuración, inventario, clientes, ventas, producción y compras.</p>
+            <p>Guía práctica para el equipo: configuración, clientes, ventas y producción.</p>
         </header>
 
         <nav class="toc" aria-label="Índice">

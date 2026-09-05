@@ -17,12 +17,7 @@ class LowStockItemsTable extends TableWidget
 
     public static function canView(): bool
     {
-        $user = auth()->user();
-
-        return $user !== null && (
-            $user->hasRole('super_admin')
-            || $user->can('ViewAny:Item')
-        );
+        return false;
     }
 
     public function table(Table $table): Table

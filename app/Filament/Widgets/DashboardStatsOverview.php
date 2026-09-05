@@ -2,11 +2,9 @@
 
 namespace App\Filament\Widgets;
 
-use App\Enums\ItemType;
 use App\Enums\ProductionOrderStatus;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
-use App\Models\Item;
 use App\Models\ProductionOrder;
 use App\Models\Sale;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
@@ -81,11 +79,6 @@ class DashboardStatsOverview extends StatsOverviewWidget
             ])
             ->count();
 
-        $lowStock = Item::query()
-            ->whereColumn('stock', '<=', 'min_stock')
-            ->where('type', '!=', ItemType::ProductoTerminado->value)
-            ->count();
-
         return [
             Stat::make('Ventas', money($salesTotal))
                 ->description(($salesTrend >= 0 ? '↑ ' : '↓ ') . abs($salesTrend) . '% vs periodo anterior')
@@ -108,13 +101,6 @@ class DashboardStatsOverview extends StatsOverviewWidget
                 ->color('info')
                 ->icon('heroicon-o-clipboard-document-list')
                 ->extraAttributes(['class' => 'saas-stat saas-stat--info']),
-            Stat::make('Inventario bajo', number_format($lowStock))
-                ->description($lowStock > 0 ? 'Requiere atención' : 'Inventario saludable')
-                ->descriptionIcon($lowStock > 0 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-check-circle')
-                ->descriptionColor($lowStock > 0 ? 'warning' : 'success')
-                ->color('warning')
-                ->icon('heroicon-o-archive-box')
-                ->extraAttributes(['class' => 'saas-stat saas-stat--warning']),
         ];
     }
 }

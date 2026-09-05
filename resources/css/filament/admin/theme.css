@@ -1950,8 +1950,13 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
     }
 
     .saas-login-brand {
-        min-height: 14rem;
+        min-height: 16rem;
         padding: 1.5rem !important;
+    }
+
+    .saas-login-brand-logo img {
+        height: 3.75rem !important;
+        max-width: 16rem !important;
     }
 
     .saas-login-brand-copy h1 {
@@ -1971,68 +1976,6 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
     background: linear-gradient(145deg, #312e81 0%, #3730a3 42%, #2563eb 100%);
     display: flex;
     align-items: stretch;
-}
-
-.saas-login-brand-glow {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(48px);
-    pointer-events: none;
-}
-
-.saas-login-brand-glow--1 {
-    width: 22rem;
-    height: 22rem;
-    background: rgba(96, 165, 250, 0.35);
-    top: -6rem;
-    right: -4rem;
-}
-
-.saas-login-brand-glow--2 {
-    width: 18rem;
-    height: 18rem;
-    background: rgba(129, 140, 248, 0.3);
-    bottom: -5rem;
-    left: -3rem;
-}
-
-.saas-login-brand-shapes {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-.saas-login-shape {
-    position: absolute;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 1.5rem;
-}
-
-.saas-login-shape--a {
-    width: 10rem;
-    height: 10rem;
-    right: 12%;
-    top: 22%;
-    transform: rotate(18deg);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.saas-login-shape--b {
-    width: 7rem;
-    height: 7rem;
-    right: 28%;
-    bottom: 18%;
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.06);
-}
-
-.saas-login-shape--c {
-    width: 14rem;
-    height: 4rem;
-    left: 10%;
-    bottom: 12%;
-    transform: rotate(-8deg);
-    background: rgba(255, 255, 255, 0.04);
 }
 
 .saas-login-brand-inner {
@@ -2056,28 +1999,27 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
 }
 
 .saas-login-brand-logo img {
-    height: 2rem;
+    height: 5rem;
     width: auto;
-    max-width: 8rem;
+    max-width: 20rem;
     object-fit: contain;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
+    filter: brightness(0) invert(1);
 }
 
 .saas-login-brand-mark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 8px;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.16);
     color: #fff;
 }
 
 .saas-login-brand-mark svg {
-    width: 1.1rem;
-    height: 1.1rem;
+    width: 1.75rem;
+    height: 1.75rem;
 }
 
 .saas-login-brand-copy h1 {
@@ -2170,7 +2112,30 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
 .saas-login-card-header p {
     margin: 0.4rem 0 0;
     font-size: 0.9375rem;
-    color: #64748b;
+    color: #64748b !important;
+}
+
+/* Labels visibles aunque el theme Vite falle en /korapp */
+.saas-login-card,
+.saas-login-card-body {
+    color: #0f172a !important;
+}
+
+.saas-login-card-header h2 {
+    color: #0f172a !important;
+}
+
+.saas-login-card-body .fi-fo-field-wrp-label,
+.saas-login-card-body .fi-fo-label,
+.saas-login-card-body label,
+.saas-login-card-body .fi-checkbox-label,
+.saas-login-card-body .fi-fo-field-wrp-hint,
+.saas-login-card-body .fi-fo-field-wrp-label span {
+    color: #0f172a !important;
+}
+
+.saas-login-forgot {
+    color: #64748b !important;
 }
 
 .saas-login-card-body .fi-sc-form {

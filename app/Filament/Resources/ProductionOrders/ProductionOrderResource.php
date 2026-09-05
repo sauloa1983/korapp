@@ -6,7 +6,6 @@ use App\Filament\Resources\ProductionOrders\Pages\CreateProductionOrder;
 use App\Filament\Resources\ProductionOrders\Pages\EditProductionOrder;
 use App\Filament\Resources\ProductionOrders\Pages\ListProductionOrders;
 use App\Filament\Resources\ProductionOrders\RelationManagers\LogsRelationManager;
-use App\Filament\Resources\ProductionOrders\RelationManagers\RequirementsRelationManager;
 use App\Filament\Resources\ProductionOrders\Schemas\ProductionOrderForm;
 use App\Filament\Resources\ProductionOrders\Tables\ProductionOrdersTable;
 use App\Models\ProductionOrder;
@@ -45,7 +44,6 @@ class ProductionOrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RequirementsRelationManager::class,
             LogsRelationManager::class,
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\SernaCatalogProducts;
 
+use App\Filament\Concerns\RestrictsOperarioAccess;
 use App\Filament\Resources\SernaCatalogProducts\Pages\CreateSernaCatalogProduct;
 use App\Filament\Resources\SernaCatalogProducts\Pages\EditSernaCatalogProduct;
 use App\Filament\Resources\SernaCatalogProducts\Pages\ListSernaCatalogProducts;
@@ -19,6 +20,8 @@ use UnitEnum;
 
 class SernaCatalogProductResource extends Resource
 {
+    use RestrictsOperarioAccess;
+
     protected static ?string $model = SernaCatalogProduct::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';

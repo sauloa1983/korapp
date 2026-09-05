@@ -95,6 +95,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->hasAnyRole(['super_admin', 'Vendedor', 'Operario', 'panel_user']);
     }
 
+    public function isOperario(): bool
+    {
+        return $this->hasRole('Operario');
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
     /** @return list<string> */
     public static function hiddenEmails(): array
     {
@@ -162,8 +172,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             return null;
         }
 
-        // Relative path — Filament wraps it with url()
-        return '/storage/'.$this->avatar_path;
+        return asset('storage/'.$this->avatar_path);
     }
 
     /** Clientes asignados a este vendedor. */

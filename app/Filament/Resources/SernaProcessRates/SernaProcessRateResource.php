@@ -5,6 +5,7 @@ namespace App\Filament\Resources\SernaProcessRates;
 use App\Filament\Resources\SernaProcessRates\Pages\CreateSernaProcessRate;
 use App\Filament\Resources\SernaProcessRates\Pages\EditSernaProcessRate;
 use App\Filament\Resources\SernaProcessRates\Pages\ListSernaProcessRates;
+use App\Filament\Concerns\RestrictsOperarioAccess;
 use App\Models\SernaProcessRate;
 use BackedEnum;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,7 @@ use UnitEnum;
 
 class SernaProcessRateResource extends Resource
 {
+    use RestrictsOperarioAccess;
     protected static ?string $model = SernaProcessRate::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-scissors';

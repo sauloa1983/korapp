@@ -26,6 +26,8 @@ class PurchaseResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Compras';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Compra';
 
     protected static ?string $pluralModelLabel = 'Compras';

@@ -84,7 +84,7 @@ class ConfiguracionEmpresa extends Page
                         TextInput::make('tagline')
                             ->label('Eslogan / descripción corta')
                             ->maxLength(255)
-                            ->placeholder('Ej. Gestión integral de inventario')
+                            ->placeholder('Ej. Gestión de ventas y producción')
                             ->columnSpan(1),
                         FileUpload::make('logo_path')
                             ->label('Logo del aplicativo')

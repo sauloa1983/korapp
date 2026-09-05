@@ -24,6 +24,8 @@ class SupplierResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventario';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Proveedor';
 
     protected static ?string $pluralModelLabel = 'Proveedores';

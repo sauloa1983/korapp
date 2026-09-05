@@ -11,19 +11,13 @@ use App\Filament\Pages\SalesDashboard;
 use App\Filament\Pages\SalesPipeline;
 use App\Filament\Resources\Activities\ActivityResource;
 use App\Filament\Resources\Customers\CustomerResource;
-use App\Filament\Resources\ItemCategories\ItemCategoryResource;
-use App\Filament\Resources\Items\ItemResource;
 use App\Filament\Resources\Leads\LeadResource;
 use App\Filament\Resources\Processes\ProcessResource;
 use App\Filament\Resources\ProductionOrders\ProductionOrderResource;
-use App\Filament\Resources\Purchases\PurchaseResource;
 use App\Filament\Resources\Quotes\QuoteResource;
 use App\Filament\Resources\Sales\SaleResource;
-use App\Filament\Resources\StockMovements\StockMovementResource;
-use App\Filament\Resources\Suppliers\SupplierResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Resources\Visits\VisitResource;
-use App\Filament\Resources\Warehouses\WarehouseResource;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
 
 class TutorialGuide
@@ -59,11 +53,6 @@ class TutorialGuide
                 'goal' => 'Cuentas y permisos',
                 'minutes' => '5 min',
             ],
-            'inventario' => [
-                'title' => 'Inventario',
-                'goal' => 'Bodegas, artículos y stock',
-                'minutes' => '8 min',
-            ],
             'clientes' => [
                 'title' => 'Clientes',
                 'goal' => 'Alta, importación y cartera',
@@ -83,11 +72,6 @@ class TutorialGuide
                 'title' => 'Producción',
                 'goal' => 'Órdenes, QR y escaneo',
                 'minutes' => '8 min',
-            ],
-            'compras' => [
-                'title' => 'Compras',
-                'goal' => 'Proveedores y recepción',
-                'minutes' => '5 min',
             ],
             'reportes' => [
                 'title' => 'Reportes',
@@ -117,11 +101,6 @@ class TutorialGuide
             'empresa' => rescue(fn () => ConfiguracionEmpresa::getUrl(), null, false),
             'usuarios' => rescue(fn () => UserResource::getUrl('index'), null, false),
             'roles' => rescue(fn () => RoleResource::getUrl('index'), null, false),
-            'bodegas' => rescue(fn () => WarehouseResource::getUrl('index'), null, false),
-            'categorias' => rescue(fn () => ItemCategoryResource::getUrl('index'), null, false),
-            'articulos' => rescue(fn () => ItemResource::getUrl('index'), null, false),
-            'movimientos' => rescue(fn () => StockMovementResource::getUrl('index'), null, false),
-            'proveedores' => rescue(fn () => SupplierResource::getUrl('index'), null, false),
             'clientes' => rescue(fn () => CustomerResource::getUrl('index'), null, false),
             'plantilla_clientes' => route('customers.import-template'),
             'reasignar' => rescue(fn () => ReasignarClientes::getUrl(), null, false),
@@ -134,7 +113,6 @@ class TutorialGuide
             'procesos' => rescue(fn () => ProcessResource::getUrl('index'), null, false),
             'ordenes' => rescue(fn () => ProductionOrderResource::getUrl('index'), null, false),
             'escaneo' => rescue(fn () => EscaneoOperario::getUrl(), null, false),
-            'compras' => rescue(fn () => PurchaseResource::getUrl('index'), null, false),
             'reportes' => rescue(fn () => Reportes::getUrl(), null, false),
             'auditoria' => rescue(fn () => ActivityResource::getUrl('index'), null, false),
         ];

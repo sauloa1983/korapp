@@ -34,7 +34,7 @@
         <x-filament::section>
             <x-slot name="heading">Venta</x-slot>
 
-            <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div class="mb-4 grid grid-cols-1 gap-3">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cliente</label>
                     <select wire:model="customerId" class="fi-input mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
@@ -46,14 +46,6 @@
                         @endforeach
                     </select>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Los clientes sin NIT/documento no pueden registrar pedidos.</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bodega</label>
-                    <select wire:model="warehouseId" class="fi-input mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                        @foreach ($this->warehouses as $warehouse)
-                            <option value="{{ $warehouse->id }}">{{ $warehouse->name }}</option>
-                        @endforeach
-                    </select>
                 </div>
             </div>
 

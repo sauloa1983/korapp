@@ -69,8 +69,8 @@ class CompanySetting extends Model
             return null;
         }
 
-        // Relative URL so the logo works regardless of APP_URL / Herd domain mismatch.
-        return '/storage/'.ltrim(str_replace('\\', '/', $this->logo_path), '/');
+        // asset() respeta APP_URL (incluye /korapp en cPanel).
+        return asset('storage/'.ltrim(str_replace('\\', '/', $this->logo_path), '/'));
     }
 
     public function usesCustomSidebar(): bool

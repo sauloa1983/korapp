@@ -16,7 +16,7 @@
             <span>2</span>
             <div>
                 <h4>Qué aprenderás</h4>
-                <p>Configurar la empresa, cargar inventario, gestionar clientes, vender, producir, comprar y revisar reportes.</p>
+                <p>Configurar la empresa, gestionar clientes, vender, producir y revisar reportes.</p>
             </div>
         </div>
         <div class="saas-guide-step">
@@ -61,11 +61,9 @@
     <p class="saas-guide-intro">Si vas a llenar Korapp por primera vez, sigue este orden:</p>
     <ol class="saas-guide-roadmap">
         <li><strong>Empresa y usuarios</strong><span>Logo, colores y cuentas del equipo</span></li>
-        <li><strong>Inventario</strong><span>Bodegas → categorías → artículos</span></li>
         <li><strong>Clientes</strong><span>Alta manual o importación CSV</span></li>
-        <li><strong>Proveedores</strong><span>Antes de registrar compras</span></li>
         <li><strong>Procesos</strong><span>Etapas de producción (corte, ensamble…)</span></li>
-        <li><strong>Operación diaria</strong><span>Prospectos, cotizaciones, ventas, compras y OP</span></li>
+        <li><strong>Operación diaria</strong><span>Prospectos, cotizaciones, ventas y OP</span></li>
     </ol>
 @endif
 
@@ -93,7 +91,7 @@
             <span>3</span>
             <div>
                 <h4>IVA</h4>
-                <p>Indica si la empresa cobra IVA y el porcentaje. Se aplica en ventas, cotizaciones, compras y punto de venta.</p>
+                <p>Indica si la empresa cobra IVA y el porcentaje. Se aplica en ventas, cotizaciones y punto de venta.</p>
             </div>
         </div>
         <div class="saas-guide-step">
@@ -333,7 +331,7 @@
             <span>3</span>
             <div>
                 <h4>Fabricar en planta</h4>
-                <p>El operario escanea el QR de cada etapa. Cuando todas terminan, la OP queda <strong>Completada</strong> y entra el producto al inventario.</p>
+                <p>El operario escanea el QR de cada etapa. Cuando todas terminan, la OP queda <strong>Completada</strong>.</p>
                 <p class="saas-guide-where">Dónde: Producción → Escaneo / Etiquetas QR</p>
                 @if ($showLinks && ! empty($links['escaneo']))
                     <a href="{{ $links['escaneo'] }}" class="saas-guide-link">Abrir Escaneo</a>
@@ -355,7 +353,7 @@
             <span>5</span>
             <div>
                 <h4>Confirmar y entregar</h4>
-                <p>Confirma la venta (factura / inventario). En la OP completada usa <strong>Entrega final</strong> para marcarla como Entregada.</p>
+                <p>Confirma la venta (factura). En la OP completada usa <strong>Entrega final</strong> para marcarla como Entregada.</p>
                 <p class="saas-guide-where">Dónde: Ventas → Confirmar · Producción → Órdenes → Entrega final</p>
             </div>
         </div>
@@ -491,13 +489,6 @@
             <div>
                 <h4>Cliente → Pedido</h4>
                 <p>Cliente → Cotización → Crear OP → Fabricar → Crear venta → Confirmar → Entrega final.</p>
-            </div>
-        </div>
-        <div class="saas-guide-step">
-            <span>C</span>
-            <div>
-                <h4>Compra → Inventario</h4>
-                <p>Proveedor → Compra → Recibir → revisar Movimientos y existencias.</p>
             </div>
         </div>
     </div>

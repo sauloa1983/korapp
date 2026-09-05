@@ -52,7 +52,7 @@ class CreateSaleFromQuoteAction
         $ordersCount = $sale->productionOrders()->count();
         $body = $ordersCount > 0
             ? "Se vincularon {$ordersCount} orden(es) de producción a la venta."
-            : 'Venta creada. Confírmala para emitir factura (sin descontar inventario por ahora).';
+            : 'Venta creada. Confírmala para emitir factura.';
 
         Notification::make()
             ->title("Venta {$sale->code} creada")

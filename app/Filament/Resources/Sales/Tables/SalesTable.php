@@ -80,7 +80,7 @@ class SalesTable
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalDescription('Confirma la venta y asigna el número de factura. Por ahora no descuenta inventario.')
+                    ->modalDescription('Confirma la venta y asigna el número de factura.')
                     ->visible(fn (Sale $record): bool => $record->status === SaleStatus::Borrador && $record->items()->exists())
                     ->action(function (Sale $record): void {
                         try {
@@ -107,7 +107,7 @@ class SalesTable
 
                         Notification::make()
                             ->title('Venta confirmada')
-                            ->body('La factura quedó confirmada. El descuento de inventario está omitido por ahora.')
+                            ->body('La factura quedó confirmada.')
                             ->success()
                             ->send();
                     }),
@@ -117,7 +117,7 @@ class SalesTable
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalHeading('Reversar venta')
-                    ->modalDescription('La venta vuelve a borrador para poder editarla. Se conserva el número de factura. No afecta inventario.')
+                    ->modalDescription('La venta vuelve a borrador para poder editarla. Se conserva el número de factura.')
                     ->visible(fn (Sale $record): bool => $record->status === SaleStatus::Confirmada)
                     ->action(function (Sale $record): void {
                         try {

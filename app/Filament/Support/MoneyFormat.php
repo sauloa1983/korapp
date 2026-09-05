@@ -39,8 +39,8 @@ class MoneyFormat
             ->prefix('$')
             ->placeholder('0')
             // decimal=',' (no se usa con precision 0), miles='.' → 1.234.567
+            // No usar stripCharacters('.'): al hidratar "95000.00" de BD queda "9500000".
             ->mask(RawJs::make('$money($input, \',\', \'.\', 0)'))
-            ->stripCharacters('.')
             ->live(debounce: 500)
             ->formatStateUsing(fn ($state): ?string => Money::formatInputState($state))
             ->dehydrateStateUsing(fn ($state): ?float => Money::parseInput($state))

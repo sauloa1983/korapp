@@ -37,6 +37,15 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\App::setLocale(config('app.locale', 'es'));
         \Carbon\Carbon::setLocale(config('app.locale', 'es'));
 
+        // Necesario cuando la app vive en subcarpeta (ej. /korapp en cPanel).
+        if ($rootUrl = config('app.url')) {
+            \Illuminate\Support\Facades\URL::forceRootUrl(rtrim($rootUrl, '/'));
+
+            if (str_starts_with($rootUrl, 'https://')) {
+                \Illuminate\Support\Facades\URL::forceScheme('https');
+            }
+        }
+
         // Sin botón "Crear y crear otro" en páginas ni modales.
         CreateRecord::disableCreateAnother();
         CreateAction::configureUsing(fn (CreateAction $action): CreateAction => $action->createAnother(false));

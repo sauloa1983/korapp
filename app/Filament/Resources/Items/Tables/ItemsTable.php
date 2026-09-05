@@ -35,13 +35,6 @@ class ItemsTable
                     ->label('Categoría')
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('stock')
-                    ->label('Existencia')
-                    ->numeric(decimalPlaces: 2)
-                    ->sortable()
-                    ->description(fn ($record): string => 'Mín: ' . number_format((float) $record->min_stock, 2))
-                    ->color(fn ($record): string => $record->is_low_stock ? 'danger' : 'success')
-                    ->weight('bold'),
                 TextColumn::make('unit_of_measure')
                     ->label('Unidad'),
                 TextColumn::make('price')

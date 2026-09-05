@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Activities;
 
+use App\Filament\Concerns\RestrictsOperarioAccess;
 use App\Filament\Resources\Activities\Pages\ListActivities;
 use App\Filament\Resources\Activities\Tables\ActivitiesTable;
 use BackedEnum;
@@ -12,6 +13,8 @@ use UnitEnum;
 
 class ActivityResource extends Resource
 {
+    use RestrictsOperarioAccess;
+
     protected static ?string $model = Activity::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';

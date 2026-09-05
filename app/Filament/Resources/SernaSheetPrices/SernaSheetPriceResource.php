@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SernaSheetPrices;
 
 use App\Enums\SernaSheetFinish;
+use App\Filament\Concerns\RestrictsOperarioAccess;
 use App\Filament\Resources\SernaSheetPrices\Pages\CreateSernaSheetPrice;
 use App\Filament\Resources\SernaSheetPrices\Pages\EditSernaSheetPrice;
 use App\Filament\Resources\SernaSheetPrices\Pages\ListSernaSheetPrices;
@@ -21,6 +22,8 @@ use UnitEnum;
 
 class SernaSheetPriceResource extends Resource
 {
+    use RestrictsOperarioAccess;
+
     protected static ?string $model = SernaSheetPrice::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';

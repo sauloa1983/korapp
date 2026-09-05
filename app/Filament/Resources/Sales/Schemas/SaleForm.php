@@ -70,7 +70,8 @@ class SaleForm
                             ->searchable()
                             ->preload()
                             ->default(fn () => \App\Models\Warehouse::defaultId())
-                            ->helperText('Bodega desde la que se despacha el inventario.'),
+                            ->hidden()
+                            ->dehydrated(),
                         Select::make('user_id')
                             ->label('Vendedor')
                             ->relationship('user', 'name')

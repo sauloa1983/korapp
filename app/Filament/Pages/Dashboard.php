@@ -4,7 +4,9 @@ namespace App\Filament\Pages;
 
 use App\Filament\Widgets\DashboardStatsOverview;
 use App\Filament\Widgets\DashboardSummaryCards;
-use App\Filament\Widgets\LowStockItemsTable;
+use App\Filament\Widgets\OperatorPendingJobsTable;
+use App\Filament\Widgets\OperatorRecentJobsTable;
+use App\Filament\Widgets\OperatorStatsOverview;
 use App\Filament\Widgets\SalesTrendChart;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -35,14 +37,18 @@ class Dashboard extends BaseDashboard
 
     public function getHeading(): string | Htmlable
     {
-        $name = auth()->user()?->name ?? 'Administrador';
+        $name = auth()->user()?->name ?? 'Usuario';
 
         return "Bienvenido, {$name}";
     }
 
     public function getSubheading(): string | Htmlable | null
     {
-        return 'Resumen claro de ventas, clientes, inventario y producción.';
+        if (auth()->user()?->isOperario()) {
+            return 'Tus pendientes, productividad y accesos rápidos de planta.';
+        }
+
+        return 'Resumen claro de ventas, clientes y producción.';
     }
 
     /**
@@ -50,11 +56,18 @@ class Dashboard extends BaseDashboard
      */
     public function getWidgets(): array
     {
+        if (auth()->user()?->isOperario()) {
+            return [
+                OperatorStatsOverview::class,
+                OperatorPendingJobsTable::class,
+                OperatorRecentJobsTable::class,
+            ];
+        }
+
         return [
             DashboardStatsOverview::class,
             SalesTrendChart::class,
             DashboardSummaryCards::class,
-            LowStockItemsTable::class,
         ];
     }
 
@@ -72,6 +85,10 @@ class Dashboard extends BaseDashboard
 
     public function filtersForm(Schema $schema): Schema
     {
+        if (auth()->user()?->isOperario()) {
+            return $schema->components([]);
+        }
+
         return $schema
             ->components([
                 Select::make('period')

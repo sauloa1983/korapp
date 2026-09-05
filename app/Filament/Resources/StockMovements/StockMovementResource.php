@@ -20,6 +20,8 @@ class StockMovementResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Inventario';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Movimiento de inventario';
 
     protected static ?string $pluralModelLabel = 'Movimientos de inventario';

@@ -86,9 +86,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Lista de precios')
                     ->collapsed(),
                 NavigationGroup::make('Gestión'),
-                NavigationGroup::make('Inventario'),
                 NavigationGroup::make('Producción'),
-                NavigationGroup::make('Compras'),
                 NavigationGroup::make('Reportes'),
                 NavigationGroup::make('Auditoría'),
                 NavigationGroup::make('Seguridad'),

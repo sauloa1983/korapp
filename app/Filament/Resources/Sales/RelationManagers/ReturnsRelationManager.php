@@ -37,9 +37,6 @@ class ReturnsRelationManager extends RelationManager
                     ->label('Total')
                     ->alignEnd()
                     ->formatStateUsing(fn ($state): string => money($state)),
-                TextColumn::make('warehouse.name')
-                    ->label('Bodega')
-                    ->placeholder('—'),
                 TextColumn::make('reason')
                     ->label('Motivo')
                     ->placeholder('—'),

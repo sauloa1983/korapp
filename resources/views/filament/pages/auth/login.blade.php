@@ -5,25 +5,15 @@
         $company = CompanySetting::current();
         $brandName = $company->name ?: config('app.name', 'Korapp');
         $logoUrl = $company->logoUrl();
-        $tagline = $company->tagline ?: 'Inventario, ventas y producción en un solo lugar.';
     } catch (Throwable) {
         $brandName = config('app.name', 'Korapp');
         $logoUrl = null;
-        $tagline = 'Inventario, ventas y producción en un solo lugar.';
     }
 @endphp
 
 <div class="saas-login">
     {{-- LEFT: brand panel --}}
     <aside class="saas-login-brand" aria-hidden="false">
-        <div class="saas-login-brand-glow saas-login-brand-glow--1"></div>
-        <div class="saas-login-brand-glow saas-login-brand-glow--2"></div>
-        <div class="saas-login-brand-shapes" aria-hidden="true">
-            <span class="saas-login-shape saas-login-shape--a"></span>
-            <span class="saas-login-shape saas-login-shape--b"></span>
-            <span class="saas-login-shape saas-login-shape--c"></span>
-        </div>
-
         <div class="saas-login-brand-inner">
             <div class="saas-login-brand-logo">
                 @if ($logoUrl)
@@ -43,12 +33,11 @@
 
             <div class="saas-login-brand-copy">
                 <h1>Gestiona tu negocio de forma inteligente</h1>
-                <p>{{ $tagline }}</p>
             </div>
 
             <ul class="saas-login-brand-points">
                 <li>Ventas y CRM en un solo flujo</li>
-                <li>Inventario y producción al día</li>
+                <li>Producción y entregas al día</li>
                 <li>Reportes claros para decidir mejor</li>
             </ul>
         </div>

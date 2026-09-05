@@ -10,7 +10,9 @@ use App\Http\Controllers\ScanController;
 use App\Http\Controllers\TutorialPrintController;
 use Illuminate\Support\Facades\Route;
 
-Route::redirect('/', '/admin');
+Route::get('/', function () {
+    return redirect()->route('filament.admin.auth.login');
+});
 
 // Escaneo público de QR por parte del operario (desde el celular).
 Route::get('/scan/{token}', [ScanController::class, 'show'])->name('scan.show');
