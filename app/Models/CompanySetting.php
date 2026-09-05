@@ -102,8 +102,8 @@ class CompanySetting extends Model
     }
 
     /**
-     * Effective theme token used by CSS (`light` | `indigo`).
-     * Custom colors map to indigo/light based on luminance.
+     * Token de tema efectivo para CSS (`light` | `indigo`).
+     * Colores personalizados se mapean a indigo/light según luminancia.
      */
     public function sidebarThemeToken(): string
     {

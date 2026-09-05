@@ -21,11 +21,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     use HasFactory, HasRoles, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    /**
      * Campos de texto que siempre se guardan en MAYÚSCULAS (excepto email).
      *
      * @var list<string>
@@ -34,6 +29,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'name',
     ];
 
+    /**
+     * Atributos asignables en masa.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
         'name',
         'email',
@@ -44,7 +44,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Atributos ocultos al serializar.
      *
      * @var list<string>
      */
@@ -54,7 +54,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * Conversiones de atributos.
      *
      * @return array<string, string>
      */

@@ -12,7 +12,7 @@ use Spatie\Permission\PermissionRegistrar;
 class DatabaseSeeder extends Seeder
 {
     /**
-     * Seed the application's database.
+     * Siembra la base de datos de la aplicación.
      */
     public function run(): void
     {

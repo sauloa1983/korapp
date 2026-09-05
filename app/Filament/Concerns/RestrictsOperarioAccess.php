@@ -4,6 +4,9 @@ namespace App\Filament\Concerns;
 
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * Bloquea menú y listados a usuarios con rol Operario.
+ */
 trait RestrictsOperarioAccess
 {
     public static function canViewAny(): bool

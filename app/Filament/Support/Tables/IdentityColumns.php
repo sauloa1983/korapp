@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class IdentityColumns
 {
     /**
-     * Avatar + primary label + muted secondary line (email by default).
+     * Avatar + etiqueta principal + línea secundaria atenuada (email por defecto).
      *
      * @return array{0: ImageColumn, 1: TextColumn}
      */
