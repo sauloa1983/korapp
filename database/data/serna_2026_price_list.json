@@ -1,0 +1,69 @@
+{
+  "year": 2026,
+  "supplier": "Acrílicos Serna",
+  "currency": "COP",
+  "notes": {
+    "sheets": "Precios oficiales de referencia para formato 120x180. Los demás formatos se cargan escalados por área (cm²) desde 120x180 hasta disponer de tarifa oficial."
+  },
+  "process_rates": [
+    {"code": "laser_2_4", "name": "Corte láser 2–4 mm", "category": "corte_laser", "thickness_mm_min": 2, "thickness_mm_max": 4, "price_per_cm2": 5.5, "min_charge": null, "sort_order": 10},
+    {"code": "laser_475_6", "name": "Corte láser 4.75–6 mm", "category": "corte_laser", "thickness_mm_min": 4.75, "thickness_mm_max": 6, "price_per_cm2": 7.0, "min_charge": null, "sort_order": 20},
+    {"code": "laser_7", "name": "Corte láser 7 mm", "category": "corte_laser", "thickness_mm_min": 7, "thickness_mm_max": 7, "price_per_cm2": 10.0, "min_charge": null, "sort_order": 30},
+    {"code": "laser_8_9", "name": "Corte láser 8–9 mm", "category": "corte_laser", "thickness_mm_min": 8, "thickness_mm_max": 9, "price_per_cm2": 13.5, "min_charge": null, "sort_order": 40},
+    {"code": "laser_10", "name": "Corte láser 10 mm", "category": "corte_laser", "thickness_mm_min": 10, "thickness_mm_max": 10, "price_per_cm2": 14.5, "min_charge": null, "sort_order": 50},
+    {"code": "laser_12", "name": "Corte láser 12 mm", "category": "corte_laser", "thickness_mm_min": 12, "thickness_mm_max": 12, "price_per_cm2": 16.5, "min_charge": null, "sort_order": 60},
+
+    {"code": "labor_2_6", "name": "Mano de obra 2–6 mm", "category": "mano_obra", "thickness_mm_min": 2, "thickness_mm_max": 6, "price_per_cm2": 16.5, "min_charge": null, "sort_order": 110},
+    {"code": "labor_7_8", "name": "Mano de obra 7–8 mm", "category": "mano_obra", "thickness_mm_min": 7, "thickness_mm_max": 8, "price_per_cm2": 19.0, "min_charge": null, "sort_order": 120},
+    {"code": "labor_9_10", "name": "Mano de obra 9–10 mm", "category": "mano_obra", "thickness_mm_min": 9, "thickness_mm_max": 10, "price_per_cm2": 20.0, "min_charge": null, "sort_order": 130},
+    {"code": "labor_12", "name": "Mano de obra 12 mm", "category": "mano_obra", "thickness_mm_min": 12, "thickness_mm_max": 12, "price_per_cm2": 22.0, "min_charge": null, "sort_order": 140},
+
+    {"code": "letra_recta_sin_tapa", "name": "Letras rectas sin tapa", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 69.5, "min_charge": 53000, "sort_order": 210},
+    {"code": "letra_curva_sin_tapa", "name": "Letras curvas sin tapa", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 76.0, "min_charge": 53000, "sort_order": 220},
+    {"code": "letra_recta_con_tapa", "name": "Letras rectas con tapa", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 85.0, "min_charge": 53000, "sort_order": 230},
+    {"code": "letra_curva_con_tapa", "name": "Letras curvas con tapa", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 92.5, "min_charge": 53000, "sort_order": 240},
+    {"code": "letra_pestana", "name": "Letras con pestaña", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 104.5, "min_charge": 53000, "sort_order": 250},
+    {"code": "caja_cantonera", "name": "Caja con cantonera", "category": "terminado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 41.0, "min_charge": null, "sort_order": 260},
+
+    {"code": "vinilo_adhesivo", "name": "Vinilo adhesivo", "category": "vinilo", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 5.5, "min_charge": null, "sort_order": 310},
+    {"code": "vinilo_instalado", "name": "Vinilo instalado", "category": "vinilo", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 7.0, "min_charge": null, "sort_order": 320},
+    {"code": "plotter", "name": "Plotter", "category": "plotter", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 7.0, "min_charge": null, "sort_order": 330},
+    {"code": "plotter_instalado", "name": "Plotter instalado", "category": "plotter", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 8.0, "min_charge": null, "sort_order": 340},
+    {"code": "enchapado", "name": "Enchapado", "category": "enchapado", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 71.5, "min_charge": null, "sort_order": 350},
+    {"code": "espejo_plata_dorado", "name": "Plata / Dorado espejo", "category": "espejo", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 30.0, "min_charge": null, "sort_order": 360},
+    {"code": "espejo_rosa_rojo_bronce", "name": "Rosa / Rojo / Bronce espejo", "category": "espejo", "thickness_mm_min": null, "thickness_mm_max": null, "price_per_cm2": 41.0, "min_charge": null, "sort_order": 370}
+  ],
+  "fixed_extras": [
+    {"sku": "PLANTILLA-EXTRA", "name": "Plantilla extra", "category": "accesorio", "unit_price": 16000, "specs": {}, "sort_order": 10}
+  ],
+  "sheet_base_120x180": [
+    {"thickness_mm": 1.5, "finish": "cristal_opal", "price": 186000},
+    {"thickness_mm": 1.5, "finish": "color", "price": 197000},
+    {"thickness_mm": 2, "finish": "cristal_opal", "price": 205000},
+    {"thickness_mm": 2, "finish": "color", "price": 222000},
+    {"thickness_mm": 2, "finish": "dos_colores_estampada", "price": 325000},
+    {"thickness_mm": 3, "finish": "cristal_opal", "price": 278000},
+    {"thickness_mm": 3, "finish": "color", "price": 303000},
+    {"thickness_mm": 3, "finish": "dos_colores_estampada", "price": 444000},
+    {"thickness_mm": 4, "finish": "cristal_opal", "price": 391000},
+    {"thickness_mm": 4, "finish": "color", "price": 427000},
+    {"thickness_mm": 4, "finish": "dos_colores_estampada", "price": 595000}
+  ],
+  "sheet_formats": [
+    {"format": "120x180", "width_cm": 120, "height_cm": 180, "sort_order": 10},
+    {"format": "130x190", "width_cm": 130, "height_cm": 190, "sort_order": 20},
+    {"format": "120x240", "width_cm": 120, "height_cm": 240, "sort_order": 30},
+    {"format": "150x250", "width_cm": 150, "height_cm": 250, "sort_order": 40},
+    {"format": "180x260", "width_cm": 180, "height_cm": 260, "sort_order": 50},
+    {"format": "180x300", "width_cm": 180, "height_cm": 300, "sort_order": 60}
+  ],
+  "catalog_products": [
+    {"sku": "CUBRE-SEC", "name": "Cubrealfombra Secretaria 5.5 mm", "category": "cubrealfombra", "unit_price": 354000, "specs": {"thickness_mm": 5.5, "role": "secretaria"}, "sort_order": 10},
+    {"sku": "CUBRE-SUBGER", "name": "Cubrealfombra Sub Gerente 5.5 mm", "category": "cubrealfombra", "unit_price": 484000, "specs": {"thickness_mm": 5.5, "role": "sub_gerente"}, "sort_order": 20},
+    {"sku": "CUBRE-GER", "name": "Cubrealfombra Gerente 5.5 mm", "category": "cubrealfombra", "unit_price": 612000, "specs": {"thickness_mm": 5.5, "role": "gerente"}, "sort_order": 30},
+    {"sku": "CUBRE-PRES", "name": "Cubrealfombra Presidente 5.5 mm", "category": "cubrealfombra", "unit_price": 704000, "specs": {"thickness_mm": 5.5, "role": "presidente"}, "sort_order": 40},
+    {"sku": "CUNA-4MM", "name": "Cuna acrílica 4 mm 76.5x40.3 cm", "category": "cuna", "unit_price": 202000, "specs": {"thickness_mm": 4, "width_cm": 76.5, "height_cm": 40.3}, "sort_order": 50},
+    {"sku": "CONO-PD155", "name": "Cono acrílico P.D. 15.5 · 18x48", "category": "cono", "unit_price": 109000, "specs": {"model": "P.D. 15.5", "size": "18x48"}, "sort_order": 60},
+    {"sku": "CONO-PD1025", "name": "Cono acrílico P.D. 10x25x16", "category": "cono", "unit_price": 59000, "specs": {"model": "P.D. 10x25x16"}, "sort_order": 70}
+  ]
+}
