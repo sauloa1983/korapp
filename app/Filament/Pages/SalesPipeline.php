@@ -7,6 +7,7 @@ use App\Filament\Concerns\HasSalesAccess;
 use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\Leads\LeadResource;
 use App\Models\Lead;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -22,7 +23,7 @@ class SalesPipeline extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-view-columns';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
     protected static ?string $navigationLabel = 'Embudo de ventas';
 
@@ -50,11 +51,13 @@ class SalesPipeline extends Page
     /** @return array<string, Collection<int, Lead>> */
     public function getColumnsProperty(): array
     {
-        $leads = Lead::query()
-            ->open()
-            ->with(['user', 'customer'])
-            ->orderBy('sort_order')
-            ->orderByDesc('updated_at')
+        $leads = CommercialScope::constrain(
+            Lead::query()
+                ->open()
+                ->with(['user', 'customer'])
+                ->orderBy('sort_order')
+                ->orderByDesc('updated_at')
+        )
             ->get()
             ->groupBy(fn (Lead $lead): string => $lead->stage->value);
 
@@ -70,11 +73,13 @@ class SalesPipeline extends Page
     /** @return Collection<int, Lead> */
     public function getRecentConversionsProperty(): Collection
     {
-        return Lead::query()
-            ->converted()
-            ->with(['customer', 'user'])
-            ->latest('converted_at')
-            ->limit(5)
+        return CommercialScope::constrain(
+            Lead::query()
+                ->converted()
+                ->with(['customer', 'user'])
+                ->latest('converted_at')
+                ->limit(5)
+        )
             ->get()
             ->each(function (Lead $lead): void {
                 $name = (string) ($lead->customer?->name ?: $lead->name);
@@ -86,6 +91,44 @@ class SalesPipeline extends Page
             });
     }
 
+    public function winLeadAction(): Action
+    {
+        return Action::make('winLead')
+            ->label('Ganar')
+            ->color('success')
+            ->icon('heroicon-o-check-circle')
+            ->requiresConfirmation()
+            ->modalHeading('Convertir a cliente')
+            ->modalDescription(fn (array $arguments): string => $this->confirmationMessageForLead(
+                (int) ($arguments['leadId'] ?? 0),
+                won: true,
+            ))
+            ->modalSubmitActionLabel('Sí, ganar')
+            ->modalCancelActionLabel('Cancelar')
+            ->action(function (array $arguments): void {
+                $this->moveLead((int) ($arguments['leadId'] ?? 0), LeadStage::Won->value);
+            });
+    }
+
+    public function loseLeadAction(): Action
+    {
+        return Action::make('loseLead')
+            ->label('Perder')
+            ->color('danger')
+            ->icon('heroicon-o-x-circle')
+            ->requiresConfirmation()
+            ->modalHeading('Marcar como perdido')
+            ->modalDescription(fn (array $arguments): string => $this->confirmationMessageForLead(
+                (int) ($arguments['leadId'] ?? 0),
+                won: false,
+            ))
+            ->modalSubmitActionLabel('Sí, perder')
+            ->modalCancelActionLabel('Cancelar')
+            ->action(function (array $arguments): void {
+                $this->moveLead((int) ($arguments['leadId'] ?? 0), LeadStage::Lost->value);
+            });
+    }
+
     public function moveLead(int $leadId, string $stage): void
     {
         $stageEnum = LeadStage::tryFrom($stage);
@@ -94,7 +137,7 @@ class SalesPipeline extends Page
             return;
         }
 
-        $lead = Lead::query()->find($leadId);
+        $lead = CommercialScope::constrain(Lead::query())->find($leadId);
 
         if (! $lead) {
             return;
@@ -158,5 +201,21 @@ class SalesPipeline extends Page
             ->title("{$lead->name} → {$stageEnum->getLabel()}")
             ->success()
             ->send();
+    }
+
+    protected function confirmationMessageForLead(int $leadId, bool $won): string
+    {
+        $lead = CommercialScope::constrain(Lead::query())->find($leadId);
+        $name = $lead?->name ?? 'este prospecto';
+
+        if ($won) {
+            if ($lead?->matchingCustomer()) {
+                return "¿Vincular {$name} al cliente existente y sacarlo del embudo?";
+            }
+
+            return "¿Convertir a {$name} en cliente y sacarlo del embudo?";
+        }
+
+        return "¿Marcar a {$name} como perdido y sacarlo del embudo?";
     }
 }

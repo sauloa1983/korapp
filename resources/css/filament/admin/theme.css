@@ -254,7 +254,9 @@ html.fi,
     border-top: 1px solid var(--saas-sidebar-border);
     background: var(--saas-sidebar) !important;
     flex-shrink: 0;
-    display: grid !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
     gap: 0.375rem !important;
     width: 100%;
     max-width: 100%;
@@ -262,15 +264,56 @@ html.fi,
     overflow: hidden;
 }
 
-.fi-sidebar .fi-sidebar-footer .fi-user-menu,
+.fi-sidebar .fi-sidebar-footer .fi-user-menu {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
 .fi-sidebar .fi-sidebar-footer .fi-database-notifications {
-    width: 100%;
+    flex: 0 0 auto;
+    width: auto;
     min-width: 0;
 }
 
 .fi-sidebar .fi-sidebar-database-notifications-btn {
-    width: 100%;
-    justify-content: flex-start;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 10px;
+    background: var(--saas-sidebar-hover);
+    color: var(--saas-sidebar-text) !important;
+    transition:
+        color var(--saas-transition),
+        background-color var(--saas-transition);
+}
+
+.fi-sidebar .fi-sidebar-database-notifications-btn:hover,
+.fi-sidebar .fi-sidebar-database-notifications-btn:focus-visible {
+    background: rgba(255, 255, 255, 0.18) !important;
+    color: var(--saas-sidebar-text) !important;
+}
+
+html.fi:not([data-sidebar-theme='indigo']) .fi-sidebar .fi-sidebar-database-notifications-btn:hover,
+html.fi:not([data-sidebar-theme='indigo']) .fi-sidebar .fi-sidebar-database-notifications-btn:focus-visible {
+    background: #e2e8f0 !important;
+}
+
+.fi-sidebar .fi-sidebar-database-notifications-btn .fi-icon,
+.fi-sidebar .fi-sidebar-database-notifications-btn svg {
+    color: var(--saas-sidebar-text) !important;
+    flex-shrink: 0;
+}
+
+.fi-sidebar .fi-sidebar-database-notifications-btn-badge-ctn {
+    position: absolute;
+    top: -0.2rem;
+    inset-inline-end: -0.2rem;
+    pointer-events: none;
 }
 
 .fi-sidebar .fi-user-menu-trigger {
@@ -292,6 +335,23 @@ html.fi,
     white-space: nowrap;
     text-align: start;
     color: var(--saas-sidebar-text);
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-footer {
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-footer .fi-user-menu,
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-footer .fi-database-notifications {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.fi-sidebar:not(.fi-sidebar-open) .fi-sidebar-database-notifications-btn {
+    width: 2.25rem;
+    height: 2.25rem;
 }
 
 /* Hide topbar chrome entirely when disabled */
@@ -791,6 +851,7 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
 .fi-section-content-ctn,
 .fi-ta-content {
     border-radius: inherit;
+    overflow-x: auto;
 }
 
 /* Prospecto: full-width fluid grid + equal-height cards
@@ -1097,7 +1158,7 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
 
 /* ??? Data table ??? */
 .fi-ta-ctn {
-    overflow: hidden;
+    overflow: visible;
     box-shadow: var(--saas-shadow) !important;
     border: 1px solid var(--saas-border) !important;
 }
@@ -3073,6 +3134,21 @@ html.fi[data-sidebar-theme='indigo'] .saas-brand-logo {
 .fi-resource-quotes.fi-resource-create-record-page .fi-section,
 .fi-resource-quotes.fi-resource-edit-record-page .fi-quote-edit-layout,
 .fi-resource-quotes.fi-resource-create-record-page .fi-quote-edit-layout {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Clientes: formulario a ancho completo */
+.fi-resource-customers.fi-resource-edit-record-page .fi-main,
+.fi-resource-customers.fi-resource-create-record-page .fi-main,
+.fi-resource-customers.fi-resource-edit-record-page .fi-page-main,
+.fi-resource-customers.fi-resource-create-record-page .fi-page-main,
+.fi-resource-customers.fi-resource-edit-record-page .fi-sc-form,
+.fi-resource-customers.fi-resource-create-record-page .fi-sc-form,
+.fi-resource-customers.fi-resource-edit-record-page .fi-sc,
+.fi-resource-customers.fi-resource-create-record-page .fi-sc,
+.fi-resource-customers.fi-resource-edit-record-page .fi-section,
+.fi-resource-customers.fi-resource-create-record-page .fi-section {
     width: 100% !important;
     max-width: none !important;
 }

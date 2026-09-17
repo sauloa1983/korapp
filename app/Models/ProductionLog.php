@@ -57,7 +57,7 @@ class ProductionLog extends Model
 
     public function productionOrder(): BelongsTo
     {
-        return $this->belongsTo(ProductionOrder::class);
+        return $this->belongsTo(ProductionOrder::class)->withTrashed();
     }
 
     public function process(): BelongsTo

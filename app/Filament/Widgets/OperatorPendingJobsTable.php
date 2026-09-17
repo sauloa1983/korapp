@@ -25,7 +25,7 @@ class OperatorPendingJobsTable extends TableWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->isOperario() === true;
+        return auth()->user()?->hasRole('Operario') === true;
     }
 
     public function table(Table $table): Table
@@ -64,10 +64,12 @@ class OperatorPendingJobsTable extends TableWidget
                     ->searchable(),
                 TextColumn::make('sequence')
                     ->label('#')
-                    ->alignCenter(),
+                    ->alignCenter()
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Estado')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Asignado')
                     ->placeholder('Libre')

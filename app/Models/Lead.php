@@ -195,7 +195,10 @@ class Lead extends Model
                     'notes' => $this->mergeNotes($matched->notes),
                     'is_active' => true,
                     'user_id' => $matched->user_id ?: $this->user_id,
-                ])->save();
+                ]);
+                // Reaplica mayúsculas por si el cliente existía en minúsculas.
+                $matched->normalizeTextCase();
+                $matched->save();
 
                 $customer = $matched;
             } else {

@@ -5,7 +5,7 @@ namespace App\Filament\Resources\SernaProcessRates;
 use App\Filament\Resources\SernaProcessRates\Pages\CreateSernaProcessRate;
 use App\Filament\Resources\SernaProcessRates\Pages\EditSernaProcessRate;
 use App\Filament\Resources\SernaProcessRates\Pages\ListSernaProcessRates;
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Models\SernaProcessRate;
 use BackedEnum;
 use Filament\Forms\Components\TextInput;
@@ -19,20 +19,20 @@ use UnitEnum;
 
 class SernaProcessRateResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
     protected static ?string $model = SernaProcessRate::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-scissors';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Lista de precios';
+    protected static string|UnitEnum|null $navigationGroup = 'Precios';
 
     protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Tarifas cm²';
 
-    protected static ?string $modelLabel = 'Tarifa Serna';
+    protected static ?string $modelLabel = 'Tarifa cm²';
 
-    protected static ?string $pluralModelLabel = 'Tarifas Serna';
+    protected static ?string $pluralModelLabel = 'Tarifas cm²';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -57,12 +57,12 @@ class SernaProcessRateResource extends Resource
         return $table
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('code')->label('Código')->searchable(),
+                TextColumn::make('code')->label('Código')->searchable()->toggleable(),
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('category')->label('Categoría')->badge(),
-                TextColumn::make('price_per_cm2')->label('$/cm²'),
-                TextColumn::make('min_charge')->label('Mínimo'),
-                IconColumn::make('is_active')->label('Activo')->boolean(),
+                TextColumn::make('category')->label('Categoría')->badge()->toggleable(),
+                TextColumn::make('price_per_cm2')->label('$/cm²')->toggleable(),
+                TextColumn::make('min_charge')->label('Mínimo')->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_active')->label('Activo')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

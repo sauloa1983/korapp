@@ -20,7 +20,7 @@ class CreateSaleFromQuoteAction
             ->color('success')
             ->requiresConfirmation()
             ->modalHeading('Crear venta / factura')
-            ->modalDescription('Flujo: Cotización → OP → Venta. Todas las OP de planta (una por pieza en Serna) deben estar completadas o entregadas. Transporte/instalación se factura sin OP.')
+            ->modalDescription('Flujo del trabajo: Cotización → Orden de producción → Venta → Entrega. La venta se crea cuando la OP está completada en planta.')
             ->action(function (mixed $record = null, mixed $livewire = null) {
                 $quote = static::resolveQuote($record, $livewire);
 

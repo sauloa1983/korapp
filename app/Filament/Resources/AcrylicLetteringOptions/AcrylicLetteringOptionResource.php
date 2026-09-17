@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AcrylicLetteringOptions;
 
 use App\Enums\AcrylicLetteringPricingMode;
 use App\Enums\AcrylicLetteringType;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\AcrylicLetteringOptions\Pages\CreateAcrylicLetteringOption;
 use App\Filament\Resources\AcrylicLetteringOptions\Pages\EditAcrylicLetteringOption;
 use App\Filament\Resources\AcrylicLetteringOptions\Pages\ListAcrylicLetteringOptions;
@@ -22,11 +23,13 @@ use UnitEnum;
 
 class AcrylicLetteringOptionResource extends Resource
 {
+    use RestrictsToSuperAdmin;
+
     protected static ?string $model = AcrylicLetteringOption::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-language';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración Acrílico';
+    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -87,12 +90,12 @@ class AcrylicLetteringOptionResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('type')->label('Tipo')->badge(),
-                TextColumn::make('pricing_mode')->label('Modo')->badge(),
-                MoneyFormat::column('price_per_m2', '$/m²'),
-                MoneyFormat::column('price_per_letter', '$/letra'),
-                MoneyFormat::column('cut_price_per_meter', '$/ml corte'),
-                IconColumn::make('is_active')->label('Activa')->boolean(),
+                TextColumn::make('type')->label('Tipo')->badge()->toggleable(),
+                TextColumn::make('pricing_mode')->label('Modo')->badge()->toggleable(),
+                MoneyFormat::column('price_per_m2', '$/m²')->toggleable(),
+                MoneyFormat::column('price_per_letter', '$/letra')->toggleable(isToggledHiddenByDefault: true),
+                MoneyFormat::column('cut_price_per_meter', '$/ml corte')->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_active')->label('Activa')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

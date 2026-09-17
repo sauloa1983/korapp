@@ -38,12 +38,15 @@ class ActivitiesTable
                     ->label('Tipo de registro')
                     ->formatStateUsing(fn (?string $state): string => ModelLabels::forType($state))
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->toggleable(),
                 TextColumn::make('subject_id')
-                    ->label('Identificador'),
+                    ->label('Identificador')
+                    ->toggleable(),
                 TextColumn::make('causer.name')
                     ->label('Usuario')
-                    ->placeholder('Sistema'),
+                    ->placeholder('Sistema')
+                    ->toggleable(),
                 TextColumn::make('properties')
                     ->label('Cambios')
                     ->formatStateUsing(function ($state): string {
@@ -55,7 +58,8 @@ class ActivitiesTable
                             ->implode(', ') ?: '—';
                     })
                     ->wrap()
-                    ->limit(80),
+                    ->limit(80)
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('description')

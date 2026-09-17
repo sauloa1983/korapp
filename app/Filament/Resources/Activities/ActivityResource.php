@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Activities;
 
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\Activities\Pages\ListActivities;
 use App\Filament\Resources\Activities\Tables\ActivitiesTable;
 use BackedEnum;
@@ -13,13 +13,13 @@ use UnitEnum;
 
 class ActivityResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
 
     protected static ?string $model = Activity::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Auditoría';
+    protected static string|UnitEnum|null $navigationGroup = 'Actividad';
 
     protected static ?string $modelLabel = 'Actividad';
 

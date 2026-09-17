@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AcrylicMaterials;
 
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\AcrylicMaterials\Pages\CreateAcrylicMaterial;
 use App\Filament\Resources\AcrylicMaterials\Pages\EditAcrylicMaterial;
 use App\Filament\Resources\AcrylicMaterials\Pages\ListAcrylicMaterials;
@@ -19,11 +20,13 @@ use UnitEnum;
 
 class AcrylicMaterialResource extends Resource
 {
+    use RestrictsToSuperAdmin;
+
     protected static ?string $model = AcrylicMaterial::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-square-3-stack-3d';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración Acrílico';
+    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -76,10 +79,10 @@ class AcrylicMaterialResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('thickness_mm')->label('mm')->sortable(),
-                MoneyFormat::column('price_per_m2', '$/m²'),
-                TextColumn::make('waste_percent')->label('Desperdicio %'),
-                IconColumn::make('is_active')->label('Activo')->boolean(),
+                TextColumn::make('thickness_mm')->label('mm')->sortable()->toggleable(),
+                MoneyFormat::column('price_per_m2', '$/m²')->toggleable(),
+                TextColumn::make('waste_percent')->label('Desperdicio %')->toggleable(),
+                IconColumn::make('is_active')->label('Activo')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

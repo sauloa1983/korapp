@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quotes\Tables;
 
 use App\Enums\QuoteStatus;
 use App\Filament\Resources\ProductionOrders\ProductionOrderResource;
+use App\Filament\Resources\Quotes\Actions\AcceptQuoteForProductionAction;
 use App\Filament\Resources\Quotes\Actions\CreateProductionOrderFromQuoteAction;
 use App\Filament\Resources\Quotes\Actions\CreateSaleFromQuoteAction;
 use App\Filament\Resources\Sales\SaleResource;
@@ -83,6 +84,8 @@ class QuotesTable
                     ->color('gray')
                     ->url(fn (Quote $record): string => route('quotes.pdf', $record))
                     ->openUrlInNewTab(),
+                AcceptQuoteForProductionAction::make()
+                    ->visible(fn (Quote $record): bool => $record->canAcceptForProduction()),
                 CreateProductionOrderFromQuoteAction::make()
                     ->visible(fn (Quote $record): bool => $record->canCreateProductionOrders()),
                 Action::make('viewOrders')

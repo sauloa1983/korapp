@@ -22,7 +22,7 @@ class OperatorStatsOverview extends StatsOverviewWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->isOperario() === true;
+        return auth()->user()?->hasRole('Operario') === true;
     }
 
     protected function getStats(): array

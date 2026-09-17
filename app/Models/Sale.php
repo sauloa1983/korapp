@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\ItemType;
 use App\Enums\PaymentMethod;
+use App\Enums\ProductionOrderStatus;
 use App\Enums\SaleStatus;
 use App\Models\Concerns\HasDocumentTotals;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -46,6 +48,7 @@ class Sale extends Model
         'payment_method',
         'advance_amount',
         'sold_at',
+        'delivered_at',
         'einvoice_status',
         'einvoice_uuid',
         'einvoice_response',
@@ -63,6 +66,7 @@ class Sale extends Model
             'iva_amount' => 'decimal:2',
             'total' => 'decimal:2',
             'sold_at' => 'date',
+            'delivered_at' => 'datetime',
             'einvoice_status' => \App\Enums\EInvoiceStatus::class,
             'einvoice_response' => 'array',
             'einvoiced_at' => 'datetime',
@@ -120,6 +124,305 @@ class Sale extends Model
         return $this->hasMany(ProductionOrder::class);
     }
 
+    /**
+     * OPs de esta factura (por sale_id o cotización vinculada).
+     *
+     * @return Builder<ProductionOrder>
+     */
+    public function deliveryOrdersQuery(): Builder
+    {
+        return ProductionOrder::query()
+            ->where(function (Builder $query): void {
+                $query->where('sale_id', $this->id);
+
+                if (filled($this->quote_id)) {
+                    $query->orWhere(function (Builder $inner): void {
+                        $inner->where('quote_id', $this->quote_id)
+                            ->where(function (Builder $saleLink): void {
+                                $saleLink->whereNull('sale_id')->orWhere('sale_id', $this->id);
+                            });
+                    });
+                }
+            });
+    }
+
+    /** Tiene OPs vinculadas a esta factura (por sale_id o cotización). */
+    public function needsProductionDelivery(): bool
+    {
+        return $this->deliveryOrdersQuery()->exists();
+    }
+
+    /** Lista para entregar: OPs completadas, o venta de stock confirmada sin OP. */
+    public function isReadyForDelivery(): bool
+    {
+        if ($this->status === SaleStatus::Borrador || $this->status === SaleStatus::Anulada) {
+            return false;
+        }
+
+        if ($this->needsProductionDelivery()) {
+            return $this->deliveryOrdersQuery()->get()->contains(
+                fn (ProductionOrder $order): bool => $order->isReadyForDelivery()
+            );
+        }
+
+        return $this->status === SaleStatus::Confirmada && $this->delivered_at === null;
+    }
+
+    /** Entrega completa: todas las OPs entregadas, o stock con delivered_at. */
+    public function isFullyDelivered(): bool
+    {
+        if ($this->needsProductionDelivery()) {
+            $orders = $this->deliveryOrdersQuery()
+                ->where('status', '!=', ProductionOrderStatus::Cancelado->value)
+                ->get();
+
+            if ($orders->isEmpty()) {
+                return false;
+            }
+
+            return $orders->every(fn (ProductionOrder $order): bool => $order->status === ProductionOrderStatus::Entregado);
+        }
+
+        return $this->delivered_at !== null;
+    }
+
+    /** Tiene OPs pendientes con fecha pactada vencida. */
+    public function isDeliveryOverdue(): bool
+    {
+        if ($this->isFullyDelivered() || ! $this->needsProductionDelivery()) {
+            return false;
+        }
+
+        return $this->deliveryOrdersQuery()->deliveryOverdue()->exists();
+    }
+
+    /** Ej: "1/2 entregadas", "Stock / sin OP" o "Entregada". */
+    public function deliveryProgressLabel(): string
+    {
+        $orders = $this->deliveryOrdersQuery()
+            ->where('status', '!=', ProductionOrderStatus::Cancelado->value)
+            ->get();
+
+        $total = $orders->count();
+
+        if ($total === 0) {
+            return $this->delivered_at !== null ? 'Entregada' : 'Stock / sin OP';
+        }
+
+        $delivered = $orders->where('status', ProductionOrderStatus::Entregado)->count();
+        $ready = $orders->filter(fn (ProductionOrder $order): bool => $order->isReadyForDelivery())->count();
+
+        if ($delivered === $total) {
+            return "{$delivered}/{$total} entregadas";
+        }
+
+        if ($ready > 0) {
+            return "{$ready}/{$total} listas · {$delivered} entregadas";
+        }
+
+        return "{$delivered}/{$total} entregadas";
+    }
+
+    public function deliveryDueAt(): ?\Carbon\CarbonInterface
+    {
+        return $this->deliveryOrdersQuery()
+            ->whereNotNull('due_at')
+            ->orderBy('due_at')
+            ->value('due_at');
+    }
+
+    public function deliveredAt(): ?\Carbon\CarbonInterface
+    {
+        if ($this->delivered_at !== null) {
+            return $this->delivered_at;
+        }
+
+        return $this->deliveryOrdersQuery()
+            ->where('status', ProductionOrderStatus::Entregado->value)
+            ->orderByDesc('delivered_at')
+            ->value('delivered_at');
+    }
+
+    /** Texto para tooltip: líneas “Entrega recibida por…” de la venta y sus OPs. */
+    public function deliveryReceivedByTooltip(): ?string
+    {
+        $chunks = [];
+
+        $fromNotes = static function (?string $notes): array {
+            if (blank($notes)) {
+                return [];
+            }
+
+            return collect(preg_split('/\r\n|\r|\n/', (string) $notes) ?: [])
+                ->map(fn (string $line): string => trim($line))
+                ->filter(fn (string $line): bool => str_contains($line, 'Entrega recibida por'))
+                ->values()
+                ->all();
+        };
+
+        foreach ($fromNotes($this->notes) as $line) {
+            $chunks[] = $line;
+        }
+
+        $orders = $this->relationLoaded('productionOrders')
+            ? $this->productionOrders
+            : $this->deliveryOrdersQuery()->get(['id', 'code', 'notes']);
+
+        foreach ($orders as $order) {
+            foreach ($fromNotes($order->notes) as $line) {
+                $chunks[] = filled($order->code) ? "{$order->code}: {$line}" : $line;
+            }
+        }
+
+        $chunks = array_values(array_unique($chunks));
+
+        return $chunks === [] ? null : implode("\n", $chunks);
+    }
+
+    /**
+     * Entrega stock (sin OP) o todas las OPs listas de esta factura.
+     *
+     * @return int Cantidad de OPs marcadas (0 si fue entrega de stock)
+     */
+    public function markReadyOrdersDelivered(?string $receivedBy = null): int
+    {
+        if ($this->status === SaleStatus::Borrador) {
+            throw new \InvalidArgumentException('Confirma la venta antes de registrar la entrega.');
+        }
+
+        if ($this->status === SaleStatus::Anulada) {
+            throw new \InvalidArgumentException('No se puede entregar una venta anulada.');
+        }
+
+        $orders = $this->deliveryOrdersQuery()->with(['sale', 'quote.sale'])->get();
+
+        if ($orders->isEmpty()) {
+            $this->markStockDelivered($receivedBy);
+
+            return 0;
+        }
+
+        $ready = $orders->filter(fn (ProductionOrder $order): bool => $order->isReadyForDelivery());
+
+        if ($ready->isEmpty()) {
+            throw new \InvalidArgumentException('No hay órdenes de producción listas para entregar en esta factura.');
+        }
+
+        foreach ($ready as $order) {
+            $order->markDelivered($receivedBy, notify: false);
+        }
+
+        app(\App\Services\NotifyDeliveryRegistered::class)->handleSale(
+            $this->fresh(['customer', 'user', 'quote', 'productionOrders']) ?? $this,
+            $ready->count()
+        );
+
+        return $ready->count();
+    }
+
+    /** Entrega de factura sin órdenes de producción (stock / lámina lista). */
+    public function markStockDelivered(?string $receivedBy = null): void
+    {
+        if ($this->status === SaleStatus::Borrador) {
+            throw new \InvalidArgumentException('Confirma la venta antes de registrar la entrega.');
+        }
+
+        if ($this->status === SaleStatus::Anulada) {
+            throw new \InvalidArgumentException('No se puede entregar una venta anulada.');
+        }
+
+        if ($this->needsProductionDelivery()) {
+            throw new \InvalidArgumentException('Esta factura tiene órdenes de producción; entrega desde las OPs listas.');
+        }
+
+        if ($this->delivered_at !== null) {
+            throw new \InvalidArgumentException('Esta factura ya está entregada.');
+        }
+
+        $notes = $this->notes;
+
+        if (filled($receivedBy)) {
+            $line = 'Entrega recibida por: '.mb_strtoupper(trim($receivedBy), 'UTF-8')
+                .' ('.now()->format('d/m/Y H:i').')';
+            $notes = filled($notes) ? rtrim((string) $notes)."\n{$line}" : $line;
+        }
+
+        $this->forceFill([
+            'delivered_at' => now(),
+            'notes' => $notes,
+        ])->save();
+
+        app(\App\Services\NotifyDeliveryRegistered::class)->handleSale(
+            $this->fresh(['customer', 'user', 'quote', 'productionOrders']) ?? $this,
+            0
+        );
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeReadyForDelivery(Builder $query): Builder
+    {
+        return $query
+            ->where('status', '!=', SaleStatus::Borrador->value)
+            ->where('status', '!=', SaleStatus::Anulada->value)
+            ->where(function (Builder $outer): void {
+                $outer
+                    ->whereHas('productionOrders', fn (Builder $orders): Builder => $orders->readyForDelivery())
+                    ->orWhere(function (Builder $stock): void {
+                        $stock
+                            ->where('status', SaleStatus::Confirmada->value)
+                            ->whereNull('delivered_at')
+                            ->whereDoesntHave('productionOrders');
+                    });
+            });
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeDeliveryOverdue(Builder $query): Builder
+    {
+        return $query
+            ->where('status', '!=', SaleStatus::Borrador->value)
+            ->where('status', '!=', SaleStatus::Anulada->value)
+            ->whereHas('productionOrders', fn (Builder $orders): Builder => $orders->deliveryOverdue())
+            ->whereHas('productionOrders', fn (Builder $orders): Builder => $orders->whereNotIn('status', [
+                ProductionOrderStatus::Entregado->value,
+                ProductionOrderStatus::Cancelado->value,
+            ]));
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeFullyDelivered(Builder $query): Builder
+    {
+        return $query
+            ->where('status', '!=', SaleStatus::Anulada->value)
+            ->where(function (Builder $outer): void {
+                $outer
+                    ->where(function (Builder $withOps): void {
+                        $withOps
+                            ->whereHas('productionOrders')
+                            ->whereDoesntHave('productionOrders', function (Builder $orders): void {
+                                $orders->whereNotIn('status', [
+                                    ProductionOrderStatus::Entregado->value,
+                                    ProductionOrderStatus::Cancelado->value,
+                                ]);
+                            });
+                    })
+                    ->orWhere(function (Builder $stock): void {
+                        $stock
+                            ->whereNotNull('delivered_at')
+                            ->whereDoesntHave('productionOrders');
+                    });
+            });
+    }
+
     public function returns(): HasMany
     {
         return $this->hasMany(SaleReturn::class);
@@ -128,6 +431,18 @@ class Sale extends Model
     public function stockMovements(): MorphMany
     {
         return $this->morphMany(StockMovement::class, 'source');
+    }
+
+    /** Monto de anticipo recibido (0 si vacío). */
+    public function advancePaid(): float
+    {
+        return max(0, (float) ($this->advance_amount ?? 0));
+    }
+
+    /** Saldo pendiente = total − anticipo (nunca negativo). */
+    public function balanceDue(): float
+    {
+        return max(0, (float) ($this->total ?? 0) - $this->advancePaid());
     }
 
     // -----------------------------------------------------------------

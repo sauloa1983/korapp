@@ -3,8 +3,10 @@
 namespace App\Filament\Resources\Customers\Widgets;
 
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Database\Eloquent\Builder;
 
 class CustomerStatsOverview extends StatsOverviewWidget
 {
@@ -14,6 +16,11 @@ class CustomerStatsOverview extends StatsOverviewWidget
 
     protected int | string | array $columnSpan = 'full';
 
+    protected function customers(): Builder
+    {
+        return CommercialScope::constrain(Customer::query());
+    }
+
     /**
      * @return array<int, int>
      */
@@ -21,7 +28,7 @@ class CustomerStatsOverview extends StatsOverviewWidget
     {
         $start = now()->subDays($days - 1)->startOfDay();
 
-        $counts = Customer::query()
+        $counts = $this->customers()
             ->where('created_at', '>=', $start)
             ->selectRaw('DATE(created_at) as day, COUNT(*) as aggregate')
             ->groupBy('day')
@@ -38,15 +45,15 @@ class CustomerStatsOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $total = Customer::query()->count();
-        $active = Customer::query()->where('is_active', true)->count();
-        $inactive = Customer::query()->where('is_active', false)->count();
+        $total = $this->customers()->count();
+        $active = $this->customers()->where('is_active', true)->count();
+        $inactive = $this->customers()->where('is_active', false)->count();
 
-        $newThisMonth = Customer::query()
+        $newThisMonth = $this->customers()
             ->where('created_at', '>=', now()->startOfMonth())
             ->count();
 
-        $newLastMonth = Customer::query()
+        $newLastMonth = $this->customers()
             ->whereBetween('created_at', [
                 now()->subMonth()->startOfMonth(),
                 now()->subMonth()->endOfMonth(),
@@ -58,12 +65,13 @@ class CustomerStatsOverview extends StatsOverviewWidget
             : ($newThisMonth > 0 ? 100 : 0);
 
         $activeShare = $total > 0 ? (int) round(($active / $total) * 100) : 0;
-        $withSales = Customer::query()->has('sales')->count();
+        $withSales = $this->customers()->has('sales')->count();
         $sparkline = $this->sparklineForDays(7);
+        $own = CommercialScope::seesOnlyOwnData();
 
         return [
-            Stat::make('Total clientes', number_format($total))
-                ->description($total > 0 ? 'Directorio completo' : 'Sin registros aún')
+            Stat::make($own ? 'Tus clientes' : 'Total clientes', number_format($total))
+                ->description($total > 0 ? ($own ? 'Tu cartera' : 'Directorio completo') : 'Sin registros aún')
                 ->descriptionIcon('heroicon-m-users')
                 ->descriptionColor('primary')
                 ->chart($sparkline)

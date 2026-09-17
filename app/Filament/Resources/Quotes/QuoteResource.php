@@ -8,10 +8,12 @@ use App\Filament\Resources\Quotes\Pages\ListQuotes;
 use App\Filament\Resources\Quotes\Schemas\QuoteForm;
 use App\Filament\Resources\Quotes\Tables\QuotesTable;
 use App\Models\Quote;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class QuoteResource extends Resource
@@ -20,9 +22,9 @@ class QuoteResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $navigationLabel = 'Cotizaciones';
 
@@ -31,6 +33,11 @@ class QuoteResource extends Resource
     protected static ?string $pluralModelLabel = 'Cotizaciones';
 
     protected static ?string $recordTitleAttribute = 'code';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return CommercialScope::constrain(parent::getEloquentQuery());
+    }
 
     public static function canEdit($record): bool
     {

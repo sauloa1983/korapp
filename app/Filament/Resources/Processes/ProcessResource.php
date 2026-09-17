@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Processes;
 
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\Processes\Pages\CreateProcess;
 use App\Filament\Resources\Processes\Pages\EditProcess;
 use App\Filament\Resources\Processes\Pages\ListProcesses;
@@ -19,13 +19,15 @@ use UnitEnum;
 
 class ProcessResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
 
     protected static ?string $model = Process::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static string|UnitEnum|null $navigationGroup = 'Producción';
+
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $modelLabel = 'Proceso';
 

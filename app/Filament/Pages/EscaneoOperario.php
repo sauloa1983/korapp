@@ -6,6 +6,7 @@ use App\Models\ProductionLog;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ class EscaneoOperario extends Page
 {
     protected string $view = 'filament.pages.escaneo-operario';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-qr-code';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQrCode;
 
     protected static string|UnitEnum|null $navigationGroup = 'Producción';
 
@@ -23,9 +24,14 @@ class EscaneoOperario extends Page
 
     protected static ?string $navigationLabel = 'Escaneo (operario)';
 
-    protected static ?int $navigationSort = 90;
+    protected static ?int $navigationSort = 2;
 
     public ?string $token = null;
+
+    public function getSubheading(): string | \Illuminate\Contracts\Support\Htmlable | null
+    {
+        return 'Estación de planta: inicia y cierra etapas con el lector QR.';
+    }
 
     /** Solo super_admin y operarios pueden usar la estación de escaneo. */
     public static function canAccess(): bool
@@ -89,13 +95,19 @@ class EscaneoOperario extends Page
     /** Últimas etapas registradas por el operario para retroalimentación inmediata. */
     public function getRecentLogs(): Collection
     {
-        return ProductionLog::query()
-            ->where('user_id', Auth::id())
-            ->whereNotNull('started_at')
-            ->with(['process', 'productionOrder'])
-            ->latest('started_at')
-            ->limit(10)
-            ->get();
+        try {
+            return ProductionLog::query()
+                ->where('user_id', Auth::id())
+                ->whereNotNull('started_at')
+                ->with(['process', 'productionOrder'])
+                ->latest('started_at')
+                ->limit(10)
+                ->get();
+        } catch (\Throwable $e) {
+            report($e);
+
+            return collect();
+        }
     }
 
     /** Acepta tanto el token puro como la URL completa del QR. */

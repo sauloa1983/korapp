@@ -47,6 +47,17 @@
                     </select>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Los clientes sin NIT/documento no pueden registrar pedidos.</p>
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Anticipo</label>
+                    <input
+                        type="text"
+                        wire:model.live="advanceAmount"
+                        inputmode="numeric"
+                        placeholder="0"
+                        class="fi-input mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    />
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Opcional. Monto ya recibido (ej. 500.000).</p>
+                </div>
             </div>
 
             @if (empty($cart))
@@ -97,6 +108,17 @@
                         <span>Total</span>
                         <span class="text-2xl font-bold">{{ money($tax['total']) }}</span>
                     </div>
+                    @php($advance = \App\Support\Money::parseInput($advanceAmount) ?? 0)
+                    @if ($advance > 0)
+                        <div class="flex items-center justify-between text-gray-600 dark:text-gray-300">
+                            <span>Anticipo</span>
+                            <span>{{ money($advance) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between font-semibold text-warning-600">
+                            <span>Saldo</span>
+                            <span>{{ money(max(0, $tax['total'] - $advance)) }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 <x-filament::button wire:click="checkout" size="lg" class="mt-4 w-full" icon="heroicon-o-banknotes">

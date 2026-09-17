@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\AcrylicLightingOptions;
 
 use App\Enums\AcrylicLightingPricingMode;
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\AcrylicLightingOptions\Pages\CreateAcrylicLightingOption;
 use App\Filament\Resources\AcrylicLightingOptions\Pages\EditAcrylicLightingOption;
 use App\Filament\Resources\AcrylicLightingOptions\Pages\ListAcrylicLightingOptions;
@@ -22,13 +22,13 @@ use UnitEnum;
 
 class AcrylicLightingOptionResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
 
     protected static ?string $model = AcrylicLightingOption::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-light-bulb';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Lista de precios';
+    protected static string|UnitEnum|null $navigationGroup = 'Precios';
 
     protected static ?int $navigationSort = 4;
 
@@ -85,10 +85,10 @@ class AcrylicLightingOptionResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('pricing_mode')->label('Modo')->badge(),
-                MoneyFormat::column('unit_price', 'Precio'),
-                MoneyFormat::column('power_supply_cost', 'Fuente de alimentación (PSU)'),
-                IconColumn::make('is_active')->label('Activa')->boolean(),
+                TextColumn::make('pricing_mode')->label('Modo')->badge()->toggleable(),
+                MoneyFormat::column('unit_price', 'Precio')->toggleable(),
+                MoneyFormat::column('power_supply_cost', 'Fuente de alimentación (PSU)')->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_active')->label('Activa')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

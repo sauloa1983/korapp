@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\VisitStatus;
 use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Visit;
+use App\Support\CommercialScope;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -32,21 +33,23 @@ class UpcomingVisitsTable extends TableWidget
     {
         return $table
             ->query(
-                Visit::query()
-                    ->with(['lead', 'customer', 'user'])
-                    ->where(function (Builder $query): void {
-                        $query
-                            ->where(function (Builder $open): void {
-                                $open->where('status', VisitStatus::Programada)
-                                    ->where('scheduled_at', '>=', now()->subDay());
-                            })
-                            ->orWhere(function (Builder $followUp): void {
-                                $followUp->whereNotNull('next_follow_up_at')
-                                    ->whereBetween('next_follow_up_at', [now()->subDay(), now()->addDays(14)]);
-                            });
-                    })
-                    ->orderByRaw('COALESCE(next_follow_up_at, scheduled_at) asc')
-                    ->limit(10)
+                CommercialScope::constrain(
+                    Visit::query()
+                        ->with(['lead', 'customer', 'user'])
+                        ->where(function (Builder $query): void {
+                            $query
+                                ->where(function (Builder $open): void {
+                                    $open->where('status', VisitStatus::Programada)
+                                        ->where('scheduled_at', '>=', now()->subDay());
+                                })
+                                ->orWhere(function (Builder $followUp): void {
+                                    $followUp->whereNotNull('next_follow_up_at')
+                                        ->whereBetween('next_follow_up_at', [now()->subDay(), now()->addDays(14)]);
+                                });
+                        })
+                        ->orderByRaw('COALESCE(next_follow_up_at, scheduled_at) asc')
+                        ->limit(10)
+                )
             )
             ->columns([
                 TextColumn::make('scheduled_at')
@@ -58,18 +61,22 @@ class UpcomingVisitsTable extends TableWidget
                     ->wrap(),
                 TextColumn::make('type')
                     ->label('Tipo')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('status')
                     ->label('Estado')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('contact')
                     ->label('Contacto')
-                    ->state(fn (Visit $record): string => $record->contactName()),
+                    ->state(fn (Visit $record): string => $record->contactName())
+                    ->toggleable(),
                 TextColumn::make('next_follow_up_at')
                     ->label('Próx. seguimiento')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('—')
-                    ->color(fn (Visit $record): ?string => $record->next_follow_up_at?->isPast() ? 'danger' : null),
+                    ->color(fn (Visit $record): ?string => $record->next_follow_up_at?->isPast() ? 'danger' : null)
+                    ->toggleable(),
             ])
             ->recordUrl(fn (Visit $record): string => VisitResource::getUrl('edit', ['record' => $record]))
             ->paginated(false)

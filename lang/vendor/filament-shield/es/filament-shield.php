@@ -18,7 +18,7 @@ return [
     'field.select_all.name' => 'Seleccionar todos',
     'field.select_all.message' => 'Habilitar todos los permisos actualmente <span class="text-primary font-medium">habilitados</span> para este rol',
 
-    'nav.group' => 'Seguridad',
+    'nav.group' => 'Accesos',
     'nav.role.label' => 'Roles',
     'nav.role.icon' => 'heroicon-o-shield-check',
     'resource.label.role' => 'Rol',
@@ -45,5 +45,7 @@ return [
         'reorder' => 'Reordenar',
         'restore_any' => 'Restaurar varios registros',
         'replicate' => 'Duplicar',
+        'import' => 'Importar',
+        'reorder' => 'Reordenar filas (arrastrar en la tabla)',
     ],
 ];

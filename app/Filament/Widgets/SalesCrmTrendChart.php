@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Enums\SaleStatus;
 use App\Models\Sale;
+use App\Support\CommercialScope;
 use Filament\Widgets\ChartWidget;
 
 class SalesCrmTrendChart extends ChartWidget
@@ -32,13 +33,22 @@ class SalesCrmTrendChart extends ChartWidget
         );
     }
 
+    public function getDescription(): ?string
+    {
+        return CommercialScope::seesOnlyOwnData()
+            ? 'Tus ingresos confirmados — últimos 30 días'
+            : 'Ingresos confirmados — últimos 30 días';
+    }
+
     protected function getData(): array
     {
         $start = now()->subDays(29)->startOfDay();
 
-        $totals = Sale::query()
-            ->where('status', SaleStatus::Confirmada)
-            ->whereBetween('sold_at', [$start, now()->endOfDay()])
+        $totals = CommercialScope::constrain(
+            Sale::query()
+                ->where('status', SaleStatus::Confirmada)
+                ->whereBetween('sold_at', [$start, now()->endOfDay()])
+        )
             ->selectRaw('DATE(sold_at) as day, SUM(total) as aggregate')
             ->groupBy('day')
             ->pluck('aggregate', 'day');
@@ -55,7 +65,7 @@ class SalesCrmTrendChart extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => 'Ingresos',
+                    'label' => CommercialScope::seesOnlyOwnData() ? 'Tus ingresos' : 'Ingresos',
                     'data' => $data,
                     'backgroundColor' => 'rgba(59, 130, 246, 0.12)',
                     'borderColor' => '#3B82F6',

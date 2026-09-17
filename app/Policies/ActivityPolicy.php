@@ -14,12 +14,12 @@ class ActivityPolicy
     
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Activity');
+        return $authUser->hasRole('super_admin');
     }
 
     public function view(AuthUser $authUser, Activity $activity): bool
     {
-        return $authUser->can('View:Activity');
+        return $authUser->hasRole('super_admin');
     }
 
     public function create(AuthUser $authUser): bool

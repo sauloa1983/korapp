@@ -9,10 +9,12 @@ use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Filament\Resources\Visits\Schemas\VisitForm;
 use App\Filament\Resources\Visits\Tables\VisitsTable;
 use App\Models\Visit;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class VisitResource extends Resource
@@ -21,9 +23,9 @@ class VisitResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Agenda comercial';
 
@@ -32,6 +34,11 @@ class VisitResource extends Resource
     protected static ?string $pluralModelLabel = 'Agenda comercial';
 
     protected static ?string $recordTitleAttribute = 'subject';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return CommercialScope::constrain(parent::getEloquentQuery());
+    }
 
     public static function form(Schema $schema): Schema
     {

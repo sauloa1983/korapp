@@ -78,8 +78,7 @@
                                         <button
                                             type="button"
                                             class="saas-pipeline-btn saas-pipeline-btn--won"
-                                            wire:click="moveLead({{ $lead->id }}, 'won')"
-                                            wire:confirm="¿Convertir a cliente y sacar del embudo?"
+                                            wire:click="mountAction('winLead', { leadId: {{ $lead->id }} })"
                                         >
                                             Ganar
                                         </button>
@@ -88,8 +87,7 @@
                                         <button
                                             type="button"
                                             class="saas-pipeline-btn saas-pipeline-btn--lost {{ $stage->canMarkWon() ? '' : 'saas-pipeline-btn--full' }}"
-                                            wire:click="moveLead({{ $lead->id }}, 'lost')"
-                                            wire:confirm="¿Marcar como perdido?"
+                                            wire:click="mountAction('loseLead', { leadId: {{ $lead->id }} })"
                                         >
                                             Perder
                                         </button>

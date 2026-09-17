@@ -8,6 +8,7 @@ use App\Services\EInvoice\FakeEInvoiceProvider;
 use Filament\Actions\CreateAction;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
@@ -49,6 +50,13 @@ class AppServiceProvider extends ServiceProvider
         // Sin botón "Crear y crear otro" en páginas ni modales.
         CreateRecord::disableCreateAnother();
         CreateAction::configureUsing(fn (CreateAction $action): CreateAction => $action->createAnother(false));
+
+        // Columnas: en TODOS los listados Filament, marcar/desmarcar aplica al instante
+        // (recursos, relation managers y widgets con tabla).
+        Table::configureUsing(
+            fn (Table $table): Table => $table->deferColumnManager(false),
+            isImportant: true,
+        );
 
         // Duración de la cookie "Recordarme" (minutos).
         $guard = Auth::guard('web');

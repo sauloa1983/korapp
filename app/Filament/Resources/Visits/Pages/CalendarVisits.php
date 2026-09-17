@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Visits\Pages;
 use App\Enums\VisitStatus;
 use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Visit;
+use App\Support\CommercialScope;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\Page;
@@ -194,15 +195,16 @@ class CalendarVisits extends Page
      */
     protected function visitsByDate(Carbon $start, Carbon $end): array
     {
-        $visits = Visit::query()
-            ->with(['lead', 'customer', 'user'])
-            ->where(function ($query) use ($start, $end): void {
-                $query
-                    ->whereBetween('scheduled_at', [$start, $end])
-                    ->orWhereBetween('next_follow_up_at', [$start, $end]);
-            })
-            ->orderBy('scheduled_at')
-            ->get();
+        $visits = CommercialScope::constrain(
+            Visit::query()
+                ->with(['lead', 'customer', 'user'])
+                ->where(function ($query) use ($start, $end): void {
+                    $query
+                        ->whereBetween('scheduled_at', [$start, $end])
+                        ->orWhereBetween('next_follow_up_at', [$start, $end]);
+                })
+                ->orderBy('scheduled_at')
+        )->get();
 
         $byDate = [];
 

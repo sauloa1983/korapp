@@ -81,6 +81,90 @@ class Quote extends Model
         return $this->status !== QuoteStatus::Accepted;
     }
 
+    /**
+     * Errores que impiden enviar la cotización a planta (OP).
+     *
+     * @return list<string>
+     */
+    public function productionValidationErrors(): array
+    {
+        $this->loadMissing(['items.item', 'pieces.items.item', 'customer', 'lead']);
+
+        $errors = [];
+
+        if (in_array($this->status, [QuoteStatus::Rejected, QuoteStatus::Expired], true)) {
+            $errors[] = 'La cotización está rechazada o vencida.';
+        }
+
+        if (blank($this->customer_id) && blank($this->lead_id)) {
+            $errors[] = 'Vincula un cliente o un prospecto.';
+        }
+
+        if ($this->items->isEmpty()) {
+            $errors[] = 'Agrega al menos una línea a la cotización.';
+        }
+
+        if ((float) ($this->total ?? 0) <= 0) {
+            $errors[] = 'El total debe ser mayor a cero.';
+        }
+
+        $jobs = $this->productionJobs();
+
+        if ($jobs->isEmpty()) {
+            $errors[] = 'No hay trabajos de planta (productos terminados fabricables).';
+        }
+
+        foreach ($jobs as $index => $job) {
+            $label = trim((string) ($job['label'] ?? '')) ?: ('Trabajo '.($index + 1));
+
+            if (blank($job['item_id'] ?? null)) {
+                $errors[] = "«{$label}»: falta un artículo vinculado.";
+            }
+
+            if ((float) ($job['quantity'] ?? 0) <= 0) {
+                $errors[] = "«{$label}»: la cantidad debe ser mayor a cero.";
+            }
+        }
+
+        if ($this->contactDisplay() === '—') {
+            $errors[] = 'Indica un contacto (nombre) para la orden de producción.';
+        }
+
+        foreach ($this->finishedGoodLines() as $line) {
+            if (blank($line->item_id)) {
+                $errors[] = 'Hay líneas de producto terminado sin artículo vinculado.';
+                break;
+            }
+        }
+
+        return array_values(array_unique($errors));
+    }
+
+    public function isReadyForProduction(): bool
+    {
+        return $this->productionValidationErrors() === [];
+    }
+
+    /** Marca la cotización como aceptada tras validar que está lista para planta. */
+    public function acceptForProduction(): void
+    {
+        $errors = $this->productionValidationErrors();
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages([
+                'quote' => $errors,
+            ]);
+        }
+
+        if ($this->status === QuoteStatus::Accepted) {
+            return;
+        }
+
+        $this->forceFill([
+            'status' => QuoteStatus::Accepted,
+        ])->save();
+    }
+
     public function validityDisplay(): string
     {
         $days = max(1, (int) ($this->validity_days ?: 10));
@@ -357,6 +441,10 @@ class Quote extends Model
             return false;
         }
 
+        if (! $this->isReadyForProduction()) {
+            return false;
+        }
+
         $jobs = $this->productionJobs();
 
         if ($jobs->isEmpty()) {
@@ -366,6 +454,13 @@ class Quote extends Model
         return $jobs->contains(
             fn (array $job): bool => ! $this->hasProductionOrderForJob($job)
         );
+    }
+
+    /** Cotización editable que aún puede validarse y aceptarse para planta. */
+    public function canAcceptForProduction(): bool
+    {
+        return in_array($this->status, [QuoteStatus::Draft, QuoteStatus::Sent], true)
+            && ! $this->sale()->exists();
     }
 
     public function canCreateSale(): bool
@@ -380,23 +475,22 @@ class Quote extends Model
             return true;
         }
 
-        // Flujo: Cotización → OP → Venta.
-        // Solo trabajos de planta (por pieza en Serna). Transporte/instalación se factura sin OP.
+        // Flujo: Cotización → OP → Venta → Entrega.
+        // La venta se crea cuando planta terminó (Completado). La entrega es el paso final.
         foreach ($jobs as $job) {
             if (! $this->hasProductionOrderForJob($job)) {
                 return false;
             }
         }
 
-        // Todas las OP de planta deben estar finalizadas; líneas sin OP (p. ej. transporte) no bloquean.
-        return $this->allProductionOrdersFinishedForSale();
+        return $this->allProductionOrdersReadyForSale();
     }
 
     /**
-     * OP activas de la cotización (solo planta) completadas o entregadas.
-     * Transporte / instalación no crean OP y no intervienen aquí.
+     * OP de planta fabricadas (Completado), listas para facturar.
+     * La entrega al cliente ocurre después de la venta.
      */
-    public function allProductionOrdersFinishedForSale(): bool
+    public function allProductionOrdersReadyForSale(): bool
     {
         $orders = $this->productionOrders()->get();
 
@@ -409,12 +503,92 @@ class Quote extends Model
         }
 
         return $active->every(
-            fn (ProductionOrder $order): bool => in_array(
-                $order->status,
-                [ProductionOrderStatus::Completado, ProductionOrderStatus::Entregado],
-                true
-            )
+            fn (ProductionOrder $order): bool => $order->status === ProductionOrderStatus::Completado
         );
+    }
+
+    /** @deprecated Usa allProductionOrdersReadyForSale() */
+    public function allProductionOrdersFinishedForSale(): bool
+    {
+        return $this->allProductionOrdersReadyForSale();
+    }
+
+    /**
+     * Pasos del trabajo: Cotización → OP → Venta → Entrega.
+     *
+     * @return list<array{key: string, label: string, state: 'done'|'current'|'todo', hint: string}>
+     */
+    public function jobWorkflowSteps(): array
+    {
+        $this->loadMissing(['productionOrders', 'sale']);
+
+        $accepted = $this->status === QuoteStatus::Accepted;
+        $jobs = $this->productionJobs();
+        $hasJobs = $jobs->isNotEmpty();
+        $allOpsCreated = $hasJobs && $jobs->every(
+            fn (array $job): bool => $this->hasProductionOrderForJob($job)
+        );
+        $opsReadyForSale = $hasJobs && $this->allProductionOrdersReadyForSale();
+        $hasSale = $this->sale()->exists();
+        $saleConfirmed = $hasSale && $this->sale?->status === SaleStatus::Confirmada;
+
+        $activeOrders = $this->productionOrders->filter(
+            fn (ProductionOrder $order): bool => $order->status !== ProductionOrderStatus::Cancelado
+        );
+        $allDelivered = $hasJobs
+            && $activeOrders->isNotEmpty()
+            && $activeOrders->every(
+                fn (ProductionOrder $order): bool => $order->status === ProductionOrderStatus::Entregado
+            );
+
+        $steps = [];
+
+        if ($accepted) {
+            $steps[] = ['key' => 'quote', 'label' => 'Cotización', 'state' => 'done', 'hint' => 'Aceptada'];
+        } elseif ($this->isReadyForProduction()) {
+            $steps[] = ['key' => 'quote', 'label' => 'Cotización', 'state' => 'current', 'hint' => 'Lista para validar y aceptar'];
+        } else {
+            $steps[] = ['key' => 'quote', 'label' => 'Cotización', 'state' => 'current', 'hint' => 'Completar y validar'];
+        }
+
+        if (! $hasJobs) {
+            $steps[] = ['key' => 'op', 'label' => 'Orden de producción', 'state' => $accepted ? 'done' : 'todo', 'hint' => 'Sin fabricación de planta'];
+        } elseif ($opsReadyForSale || $allDelivered) {
+            $steps[] = ['key' => 'op', 'label' => 'Orden de producción', 'state' => 'done', 'hint' => 'Completada en planta'];
+        } elseif ($allOpsCreated) {
+            $steps[] = ['key' => 'op', 'label' => 'Orden de producción', 'state' => 'current', 'hint' => 'En planta'];
+        } elseif ($accepted) {
+            $steps[] = ['key' => 'op', 'label' => 'Orden de producción', 'state' => 'current', 'hint' => 'Crear OP'];
+        } else {
+            $steps[] = ['key' => 'op', 'label' => 'Orden de producción', 'state' => 'todo', 'hint' => 'Después de aceptar'];
+        }
+
+        if ($hasSale) {
+            $steps[] = [
+                'key' => 'sale',
+                'label' => 'Venta',
+                'state' => 'done',
+                'hint' => $saleConfirmed ? 'Confirmada' : 'Borrador',
+            ];
+        } elseif ($opsReadyForSale || (! $hasJobs && $accepted)) {
+            $steps[] = ['key' => 'sale', 'label' => 'Venta', 'state' => 'current', 'hint' => 'Crear venta / factura'];
+        } else {
+            $steps[] = ['key' => 'sale', 'label' => 'Venta', 'state' => 'todo', 'hint' => 'Después de completar OP'];
+        }
+
+        if (! $hasJobs) {
+            $steps[] = ['key' => 'delivery', 'label' => 'Entrega', 'state' => $hasSale ? 'done' : 'todo', 'hint' => 'Sin OP de planta'];
+        } elseif ($allDelivered) {
+            $steps[] = ['key' => 'delivery', 'label' => 'Entrega', 'state' => 'done', 'hint' => 'Entregada al cliente'];
+        } elseif ($hasSale && ($opsReadyForSale || $activeOrders->contains(
+            fn (ProductionOrder $order): bool => $order->status === ProductionOrderStatus::Completado
+        ))) {
+            $steps[] = ['key' => 'delivery', 'label' => 'Entrega', 'state' => 'current', 'hint' => 'Registrar entrega final'];
+        } else {
+            $steps[] = ['key' => 'delivery', 'label' => 'Entrega', 'state' => 'todo', 'hint' => 'Después de la venta'];
+        }
+
+        return $steps;
     }
 
     /**
@@ -426,7 +600,15 @@ class Quote extends Model
     public function createProductionOrders(?int $userId = null, ?iterable $processIds = null): Collection
     {
         if ($this->status !== QuoteStatus::Accepted) {
-            throw new InvalidArgumentException('Solo se puede crear OP desde una cotización aceptada.');
+            throw new InvalidArgumentException('Solo se puede crear OP desde una cotización aceptada. Primero valídala y acéptala.');
+        }
+
+        $errors = $this->productionValidationErrors();
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages([
+                'quote' => $errors,
+            ]);
         }
 
         $this->loadMissing(['items.item', 'pieces.items.item', 'lead', 'customer']);
@@ -504,7 +686,7 @@ class Quote extends Model
 
     /**
      * Genera una venta en borrador a partir de esta cotización aceptada.
-     * Flujo: Cotización → OP → Venta. No crea OPs nuevas; vincula las existentes.
+     * Flujo: Cotización → OP → Venta → Entrega. No crea OPs nuevas; vincula las existentes.
      */
     public function createSale(?int $userId = null): Sale
     {
@@ -533,13 +715,13 @@ class Quote extends Model
 
         foreach ($this->productionJobs() as $job) {
             if (! $this->hasProductionOrderForJob($job)) {
-                throw new InvalidArgumentException('Primero crea la orden de producción (Cotización → OP → Venta).');
+                throw new InvalidArgumentException('Primero crea la orden de producción (Cotización → OP → Venta → Entrega).');
             }
         }
 
-        if ($this->productionJobs()->isNotEmpty() && ! $this->allProductionOrdersFinishedForSale()) {
+        if ($this->productionJobs()->isNotEmpty() && ! $this->allProductionOrdersReadyForSale()) {
             throw new InvalidArgumentException(
-                'Todas las órdenes de producción deben estar completadas o entregadas antes de crear la venta.'
+                'Todas las órdenes de producción deben estar completadas en planta antes de crear la venta. La entrega al cliente es el paso siguiente.'
             );
         }
 
@@ -603,6 +785,13 @@ class Quote extends Model
                 ->update(['sale_id' => $sale->id]);
 
             $sale->refresh()->recalculateTotal();
+
+            $advancePercent = (float) ($this->advance_percent ?? 0);
+            if ($advancePercent > 0 && $advancePercent <= 100) {
+                $sale->forceFill([
+                    'advance_amount' => round(((float) $sale->total) * ($advancePercent / 100), 2),
+                ])->save();
+            }
 
             return $sale->fresh(['items', 'customer', 'productionOrders.logs']);
         });

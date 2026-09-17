@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Quote;
+use App\Support\CommercialScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -19,7 +20,8 @@ class QuotePolicy
 
     public function view(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('View:Quote');
+        return $authUser->can('View:Quote')
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +31,16 @@ class QuotePolicy
 
     public function update(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('Update:Quote') && $quote->isEditable();
+        return $authUser->can('Update:Quote')
+            && $quote->isEditable()
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function delete(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('Delete:Quote') && $quote->isEditable();
+        return $authUser->can('Delete:Quote')
+            && $quote->isEditable()
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -44,12 +50,14 @@ class QuotePolicy
 
     public function restore(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('Restore:Quote');
+        return $authUser->can('Restore:Quote')
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function forceDelete(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('ForceDelete:Quote');
+        return $authUser->can('ForceDelete:Quote')
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
@@ -64,7 +72,8 @@ class QuotePolicy
 
     public function replicate(AuthUser $authUser, Quote $quote): bool
     {
-        return $authUser->can('Replicate:Quote');
+        return $authUser->can('Replicate:Quote')
+            && CommercialScope::owns($quote->user_id);
     }
 
     public function reorder(AuthUser $authUser): bool

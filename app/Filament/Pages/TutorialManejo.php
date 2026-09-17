@@ -15,7 +15,7 @@ class TutorialManejo extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static string|UnitEnum|null $navigationGroup = 'General';
+    protected static string|UnitEnum|null $navigationGroup = 'Principal';
 
     protected static ?string $navigationLabel = 'Ayuda';
 
@@ -43,7 +43,7 @@ class TutorialManejo extends Page
 
     public function getSubheading(): string | Htmlable | null
     {
-        return 'Aprende Korapp paso a paso: desde entrar al sistema hasta vender, producir y comprar.';
+        return 'Aprende Korapp paso a paso: el pedido va Cotización → OP → Venta → Entrega.';
     }
 
     /**

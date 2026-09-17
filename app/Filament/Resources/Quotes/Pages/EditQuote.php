@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Quotes\Pages;
 
 use App\Filament\Resources\Concerns\RedirectsToResourceIndex;
 use App\Filament\Resources\ProductionOrders\ProductionOrderResource;
+use App\Filament\Resources\Quotes\Actions\AcceptQuoteForProductionAction;
 use App\Filament\Resources\Quotes\Actions\CreateProductionOrderFromQuoteAction;
 use App\Filament\Resources\Quotes\Actions\CreateSaleFromQuoteAction;
 use App\Filament\Resources\Quotes\QuoteResource;
@@ -39,6 +40,19 @@ class EditQuote extends EditRecord
         }
 
         return parent::getTitle();
+    }
+
+    public function getSubheading(): string | Htmlable | null
+    {
+        return null;
+    }
+
+    public function content(Schema $schema): Schema
+    {
+        return $schema->components([
+            $this->getFormContentComponent(),
+            $this->getRelationManagersContentComponent(),
+        ]);
     }
 
     /**
@@ -177,6 +191,8 @@ class EditQuote extends EditRecord
                 ->color('gray')
                 ->url(fn (): string => route('quotes.pdf', $this->getRecord()))
                 ->openUrlInNewTab(),
+            AcceptQuoteForProductionAction::make()
+                ->visible(fn (): bool => $this->getRecord()->canAcceptForProduction()),
             CreateProductionOrderFromQuoteAction::make()
                 ->visible(fn (): bool => $this->getRecord()->canCreateProductionOrders()),
             Action::make('viewOrders')

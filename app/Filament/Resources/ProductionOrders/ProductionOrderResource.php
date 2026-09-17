@@ -25,6 +25,10 @@ class ProductionOrderResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Producción';
 
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $navigationLabel = 'Órdenes de producción';
+
     protected static ?string $modelLabel = 'Orden de producción';
 
     protected static ?string $pluralModelLabel = 'Órdenes de producción';

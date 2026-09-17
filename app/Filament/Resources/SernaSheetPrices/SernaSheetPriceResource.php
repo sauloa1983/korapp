@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\SernaSheetPrices;
 
 use App\Enums\SernaSheetFinish;
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\SernaSheetPrices\Pages\CreateSernaSheetPrice;
 use App\Filament\Resources\SernaSheetPrices\Pages\EditSernaSheetPrice;
 use App\Filament\Resources\SernaSheetPrices\Pages\ListSernaSheetPrices;
@@ -22,21 +22,21 @@ use UnitEnum;
 
 class SernaSheetPriceResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
 
     protected static ?string $model = SernaSheetPrice::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Lista de precios';
+    protected static string|UnitEnum|null $navigationGroup = 'Precios';
 
     protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Láminas';
 
-    protected static ?string $modelLabel = 'Lámina Serna';
+    protected static ?string $modelLabel = 'Lámina';
 
-    protected static ?string $pluralModelLabel = 'Láminas Serna';
+    protected static ?string $pluralModelLabel = 'Láminas';
 
     public static function form(Schema $schema): Schema
     {
@@ -60,11 +60,11 @@ class SernaSheetPriceResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('format')->label('Formato')->searchable()->sortable(),
-                TextColumn::make('thickness_mm')->label('mm')->sortable(),
-                TextColumn::make('finish')->label('Acabado'),
-                MoneyFormat::column('price', 'Precio'),
-                TextColumn::make('price_source')->label('Fuente')->toggleable(),
-                IconColumn::make('is_active')->label('Activo')->boolean(),
+                TextColumn::make('thickness_mm')->label('mm')->sortable()->toggleable(),
+                TextColumn::make('finish')->label('Acabado')->toggleable(),
+                MoneyFormat::column('price', 'Precio')->toggleable(),
+                TextColumn::make('price_source')->label('Fuente')->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_active')->label('Activo')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

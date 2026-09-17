@@ -21,7 +21,7 @@ use Illuminate\Support\HtmlString;
 use Throwable;
 
 /**
- * Campos de ítem del cotizador Serna, reutilizados en Cotizador y Editar cotización.
+ * Campos de ítem del cotizador comercial, reutilizados en Cotizador y Editar cotización.
  */
 class SernaItemFormFields
 {

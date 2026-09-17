@@ -16,7 +16,7 @@ class CustomerImportTemplateController extends Controller
     /** Plantilla CSV lista para Excel (UTF-8 con BOM). */
     public function __invoke(): StreamedResponse
     {
-        Gate::authorize('create', Customer::class);
+        Gate::authorize('import', Customer::class);
 
         $columns = CustomerImporter::getColumns();
 

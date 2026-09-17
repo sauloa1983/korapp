@@ -13,6 +13,7 @@ use App\Services\Serna\Ai\SernaAiAssistant;
 use App\Services\Serna\Ai\SernaQuoteReadinessChecker;
 use App\Services\Serna\CreateQuoteFromSernaCalculation;
 use App\Services\Serna\SernaQuotationEngine;
+use App\Support\CommercialScope;
 use App\Support\Money;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -53,15 +54,15 @@ class CotizadorAcrilico extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
     protected static ?string $navigationLabel = 'Cotizador';
 
-    protected static ?string $title = 'Cotizador comercial Serna 2026';
+    protected static ?string $title = 'Cotizador comercial';
 
     protected static ?string $slug = 'cotizador-acrilico';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 6;
 
     public static function canAccess(): bool
     {
@@ -110,7 +111,7 @@ class CotizadorAcrilico extends Page
 
     public function getHeading(): string | Htmlable
     {
-        return 'Cotizador comercial · Acrílicos Serna 2026';
+        return 'Cotizador comercial · Acrílicos Serna';
     }
 
     public function getSubheading(): string | Htmlable | null
@@ -134,18 +135,35 @@ class CotizadorAcrilico extends Page
                     ->extraAttributes(['class' => 'fi-cotizador-acrilico-layout'])
                     ->schema([
                         Section::make('Encabezado comercial')
-                            ->description('Campos de la cotización tipo Acrílicos Serna (proyectos especiales).')
+                            ->description('Datos del cliente o prospecto y condiciones comerciales.')
                             ->columnSpan(['lg' => 8])
                             ->columns(2)
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Empresa / Cliente')
-                                    ->options(fn () => Customer::query()->where('is_active', true)->orderBy('name')->get()
+                                    ->options(fn () => CommercialScope::constrain(
+                                        Customer::query()->where('is_active', true)->orderBy('name')
+                                    )->get()
                                         ->mapWithKeys(fn (Customer $c) => [
-                                            $c->id => $c->displayName()
+                                            (string) $c->id => $c->displayName()
                                                 .(filled($c->tax_id) ? " · {$c->tax_id}" : '')
                                                 .($c->is_retenedor ? ' · Retenedor '.$c->retenedor_percent.'%' : ''),
                                         ]))
+                                    ->getOptionLabelUsing(function ($value): ?string {
+                                        if (blank($value)) {
+                                            return null;
+                                        }
+
+                                        $c = CommercialScope::constrain(Customer::query())->find($value);
+
+                                        if (! $c) {
+                                            return null;
+                                        }
+
+                                        return $c->displayName()
+                                            .(filled($c->tax_id) ? " · {$c->tax_id}" : '')
+                                            .($c->is_retenedor ? ' · Retenedor '.$c->retenedor_percent.'%' : '');
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->nullable()
@@ -164,12 +182,29 @@ class CotizadorAcrilico extends Page
                                     }),
                                 Select::make('lead_id')
                                     ->label('Prospecto')
-                                    ->options(fn () => Lead::query()->orderBy('name')->get()
+                                    ->options(fn () => CommercialScope::constrain(
+                                        Lead::query()->open()->orderBy('name')
+                                    )->get()
                                         ->mapWithKeys(fn (Lead $lead) => [
-                                            $lead->id => filled($lead->company)
+                                            (string) $lead->id => filled($lead->company)
                                                 ? "{$lead->name} ({$lead->company})"
                                                 : (string) $lead->name,
                                         ]))
+                                    ->getOptionLabelUsing(function ($value): ?string {
+                                        if (blank($value)) {
+                                            return null;
+                                        }
+
+                                        $lead = CommercialScope::constrain(Lead::query())->find($value);
+
+                                        if (! $lead) {
+                                            return null;
+                                        }
+
+                                        return filled($lead->company)
+                                            ? "{$lead->name} ({$lead->company})"
+                                            : (string) $lead->name;
+                                    })
                                     ->searchable()
                                     ->preload()
                                     ->nullable()

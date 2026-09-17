@@ -42,6 +42,40 @@ class SalesTable
                     ->label('Estado')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('delivery_status')
+                    ->label('Entrega')
+                    ->badge()
+                    ->state(function (Sale $record): ?string {
+                        if ($record->status === SaleStatus::Borrador || $record->status === SaleStatus::Anulada) {
+                            return null;
+                        }
+
+                        if ($record->isFullyDelivered()) {
+                            return 'Entregada';
+                        }
+
+                        if ($record->isReadyForDelivery()) {
+                            return $record->needsProductionDelivery() ? 'Lista' : 'Por entregar';
+                        }
+
+                        if ($record->needsProductionDelivery()) {
+                            return $record->isDeliveryOverdue() ? 'Atrasada' : 'En planta';
+                        }
+
+                        return null;
+                    })
+                    ->color(fn (?string $state): string => match ($state) {
+                        'Entregada' => 'primary',
+                        'Lista', 'Por entregar' => 'success',
+                        'Atrasada' => 'danger',
+                        'En planta' => 'warning',
+                        default => 'gray',
+                    })
+                    ->placeholder('—')
+                    ->tooltip(fn (Sale $record): ?string => $record->status === SaleStatus::Confirmada
+                        ? $record->deliveryProgressLabel()
+                        : null)
+                    ->toggleable(),
                 TextColumn::make('items_count')
                     ->label('Líneas')
                     ->counts('items')
@@ -63,6 +97,19 @@ class SalesTable
                     ->alignEnd()
                     ->formatStateUsing(fn ($state): string => money($state))
                     ->sortable(),
+                TextColumn::make('advance_amount')
+                    ->label('Anticipo')
+                    ->alignEnd()
+                    ->formatStateUsing(fn ($state): string => money($state ?? 0))
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('balance_due')
+                    ->label('Saldo')
+                    ->alignEnd()
+                    ->state(fn (Sale $record): float => $record->balanceDue())
+                    ->formatStateUsing(fn ($state): string => money($state))
+                    ->color(fn (Sale $record): string => $record->balanceDue() > 0 ? 'warning' : 'success')
+                    ->toggleable(),
                 TextColumn::make('sold_at')
                     ->label('Fecha')
                     ->date('d/m/Y')

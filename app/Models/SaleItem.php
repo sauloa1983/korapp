@@ -51,7 +51,7 @@ class SaleItem extends Model
     }
 
     /**
-     * Código visible: SKU de catálogo, o material/tipo Serna (más claro que SERNA-SERVICIO).
+     * Código visible: SKU de catálogo, o material/tipo de manufactura.
      */
     public function displaySku(): string
     {

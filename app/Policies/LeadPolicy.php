@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Lead;
+use App\Support\CommercialScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -19,7 +20,8 @@ class LeadPolicy
 
     public function view(AuthUser $authUser, Lead $lead): bool
     {
-        return $authUser->can('View:Lead');
+        return $authUser->can('View:Lead')
+            && CommercialScope::owns($lead->user_id);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +31,14 @@ class LeadPolicy
 
     public function update(AuthUser $authUser, Lead $lead): bool
     {
-        return $authUser->can('Update:Lead');
+        return $authUser->can('Update:Lead')
+            && CommercialScope::owns($lead->user_id);
     }
 
     public function delete(AuthUser $authUser, Lead $lead): bool
     {
-        return $authUser->can('Delete:Lead');
+        return $authUser->can('Delete:Lead')
+            && CommercialScope::owns($lead->user_id);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -44,12 +48,14 @@ class LeadPolicy
 
     public function restore(AuthUser $authUser, Lead $lead): bool
     {
-        return $authUser->can('Restore:Lead');
+        return $authUser->can('Restore:Lead')
+            && CommercialScope::owns($lead->user_id);
     }
 
     public function forceDelete(AuthUser $authUser, Lead $lead): bool
     {
-        return $authUser->can('ForceDelete:Lead');
+        return $authUser->can('ForceDelete:Lead')
+            && CommercialScope::owns($lead->user_id);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

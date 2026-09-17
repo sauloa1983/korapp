@@ -13,7 +13,7 @@ trait RestrictsOperarioAccess
     {
         $user = Auth::user();
 
-        if ($user === null || $user->isOperario()) {
+        if ($user === null || $user->hasRole('Operario')) {
             return false;
         }
 
@@ -22,7 +22,7 @@ trait RestrictsOperarioAccess
 
     public static function shouldRegisterNavigation(): bool
     {
-        if (Auth::user()?->isOperario()) {
+        if (Auth::user()?->hasRole('Operario')) {
             return false;
         }
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Visits\Schemas;
 use App\Enums\VisitStatus;
 use App\Enums\VisitType;
 use App\Models\Lead;
+use App\Support\CommercialScope;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -13,6 +14,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class VisitForm
 {
@@ -29,7 +31,13 @@ class VisitForm
                         ->schema([
                             Select::make('lead_id')
                                 ->label('Prospecto')
-                                ->relationship('lead', 'name')
+                                ->relationship(
+                                    name: 'lead',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn (Builder $query): Builder => CommercialScope::constrain(
+                                        $query->orderBy('name')
+                                    ),
+                                )
                                 ->searchable()
                                 ->preload()
                                 ->live()
@@ -38,7 +46,9 @@ class VisitForm
                                         return;
                                     }
 
-                                    $customerId = Lead::query()->whereKey($state)->value('customer_id');
+                                    $customerId = CommercialScope::constrain(Lead::query())
+                                        ->whereKey($state)
+                                        ->value('customer_id');
 
                                     if (filled($customerId)) {
                                         $set('customer_id', $customerId);
@@ -47,7 +57,13 @@ class VisitForm
                                 ->helperText('Negociación o cierre de venta.'),
                             Select::make('customer_id')
                                 ->label('Cliente')
-                                ->relationship('customer', 'name')
+                                ->relationship(
+                                    name: 'customer',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn (Builder $query): Builder => CommercialScope::constrain(
+                                        $query->orderBy('name')
+                                    ),
+                                )
                                 ->searchable()
                                 ->preload()
                                 ->helperText('Posventa, cobro o fidelización.'),
@@ -90,7 +106,12 @@ class VisitForm
                             ->default(fn () => auth()->id())
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData())
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn ($state): ?int => CommercialScope::seesOnlyOwnData()
+                                ? auth()->id()
+                                : ($state !== null && $state !== '' ? (int) $state : auth()->id())),
                         Textarea::make('notes')
                             ->label('Notas / preparación')
                             ->rows(3)

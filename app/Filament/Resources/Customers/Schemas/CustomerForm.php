@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Customers\Schemas;
 
 use App\Enums\CustomerIdentityType;
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -106,10 +107,12 @@ class CustomerForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->columns(1)
             ->components([
                 Section::make('Datos del cliente')
                     ->description('Los textos se guardan en MAYÚSCULAS (excepto el correo). El documento es obligatorio para pedidos.')
                     ->columns(2)
+                    ->columnSpanFull()
                     ->schema([
                         ...static::identityFields(requireDocument: true),
                         Select::make('user_id')
@@ -131,7 +134,12 @@ class CustomerForm
                             ->nullable()
                             ->default(fn (): ?int => auth()->id())
                             ->placeholder('Sin asignar')
-                            ->helperText('Si se deja vacío o el vendedor se va, el cliente queda en «Sin asignar».'),
+                            ->helperText('Si se deja vacío o el vendedor se va, el cliente queda en «Sin asignar».')
+                            ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData())
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn ($state): ?int => CommercialScope::seesOnlyOwnData()
+                                ? auth()->id()
+                                : ($state !== null && $state !== '' ? (int) $state : null)),
                         Toggle::make('is_active')
                             ->label('Cliente activo')
                             ->helperText('Los clientes inactivos no aparecen en el punto de venta.')

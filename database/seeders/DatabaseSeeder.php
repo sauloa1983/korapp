@@ -81,11 +81,6 @@ class DatabaseSeeder extends Seeder
             'View:SalesDashboard',
             'View:SalesPipeline',
             'View:CotizadorAcrilico',
-            // Parámetros cotizador acrílico (consulta / ajuste comercial)
-            'ViewAny:AcrylicMaterial', 'View:AcrylicMaterial',
-            'ViewAny:AcrylicLightingOption', 'View:AcrylicLightingOption',
-            'ViewAny:AcrylicFinishOption', 'View:AcrylicFinishOption',
-            'ViewAny:AcrylicLetteringOption', 'View:AcrylicLetteringOption',
         ];
         $this->ensurePermissions($vendedorPermissionNames);
 
@@ -109,6 +104,20 @@ class DatabaseSeeder extends Seeder
                 'pin' => '2222',
             ],
         )->syncRoles([$vendedor]);
+
+        // Gerencia: misma base comercial + consulta de OP (recibe alertas de planta).
+        $gerenciaPermissionNames = array_values(array_unique([
+            ...$vendedorPermissionNames,
+            'ViewAny:ProductionOrder',
+            'View:ProductionOrder',
+            'View:Reportes',
+        ]));
+        $this->ensurePermissions($gerenciaPermissionNames);
+
+        $gerencia = Role::firstOrCreate(['name' => 'Gerencia', 'guard_name' => 'web']);
+        $gerencia->syncPermissions(
+            Permission::query()->whereIn('name', $gerenciaPermissionNames)->get()
+        );
     }
 
     /** @param  list<string>  $names */

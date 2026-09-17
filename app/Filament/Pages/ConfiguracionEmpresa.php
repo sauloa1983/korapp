@@ -34,7 +34,7 @@ class ConfiguracionEmpresa extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static string|UnitEnum|null $navigationGroup = 'General';
+    protected static string|UnitEnum|null $navigationGroup = 'Principal';
 
     protected static ?string $navigationLabel = 'Empresa';
 

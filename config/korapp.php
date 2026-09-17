@@ -28,4 +28,32 @@ return [
         'sauloandres@gmail.com',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Alertas de OP completada
+    |--------------------------------------------------------------------------
+    |
+    | Roles que reciben la campana/toast cuando planta termina un trabajo.
+    | Operarios no se incluyen: ellos ejecutan el escaneo.
+    |
+    */
+
+    'production_completed_alert_roles' => [
+        'super_admin',
+        'Vendedor',
+        'Gerencia',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Alertas de entrega registrada
+    |--------------------------------------------------------------------------
+    */
+
+    'delivery_alert_roles' => [
+        'super_admin',
+        'Vendedor',
+        'Gerencia',
+    ],
+
 ];

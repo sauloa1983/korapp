@@ -40,7 +40,7 @@ class ReasignarClientes extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
     protected static ?string $navigationLabel = 'Reasignar cartera';
 
@@ -48,7 +48,7 @@ class ReasignarClientes extends Page
 
     protected static ?string $slug = 'reasignar-clientes';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 20;
 
     public static function canAccess(): bool
     {

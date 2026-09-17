@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PaymentMethod;
 use App\Enums\ProductionLogStatus;
 use App\Enums\ProductionOrderStatus;
+use App\Enums\SaleStatus;
 use App\Enums\StockMovementType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -337,6 +338,13 @@ class ProductionOrder extends Model
                 'completed_at' => now(),
             ])->save();
         });
+
+        app(\App\Services\NotifyProductionCompleted::class)->handle($this->fresh([
+            'item',
+            'quote',
+            'quotedBy',
+            'user',
+        ]) ?? $this);
     }
 
     public function cancel(): void
@@ -344,17 +352,146 @@ class ProductionOrder extends Model
         $this->forceFill(['status' => ProductionOrderStatus::Cancelado])->save();
     }
 
-    /** Entrega final al cliente (después de fabricar y facturar). */
-    public function markDelivered(): void
+    /** Completada en planta y con venta lista (o sin cotización). */
+    public function isReadyForDelivery(): bool
     {
         if ($this->status !== ProductionOrderStatus::Completado) {
-            throw new \InvalidArgumentException('Solo se puede entregar una orden completada.');
+            return false;
+        }
+
+        $this->loadMissing(['sale', 'quote.sale']);
+
+        $sale = $this->sale ?? $this->quote?->sale;
+
+        if ($this->quote_id && $sale === null) {
+            return false;
+        }
+
+        if ($sale !== null && $sale->status === SaleStatus::Borrador) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Tiene fecha pactada vencida y aún no se entregó. */
+    public function isDeliveryOverdue(): bool
+    {
+        if ($this->status === ProductionOrderStatus::Entregado || $this->status === ProductionOrderStatus::Cancelado) {
+            return false;
+        }
+
+        if ($this->due_at === null) {
+            return false;
+        }
+
+        return $this->due_at->endOfDay()->isPast();
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeReadyForDelivery(Builder $query): Builder
+    {
+        return $query
+            ->where('status', ProductionOrderStatus::Completado)
+            ->where(function (Builder $q): void {
+                $q->whereNull('quote_id')
+                    ->orWhereHas('sale', fn (Builder $sale): Builder => $sale->where('status', '!=', SaleStatus::Borrador->value))
+                    ->orWhereHas('quote.sale', fn (Builder $sale): Builder => $sale->where('status', '!=', SaleStatus::Borrador->value));
+            });
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeDeliveryOverdue(Builder $query): Builder
+    {
+        return $query
+            ->whereNotIn('status', [
+                ProductionOrderStatus::Entregado->value,
+                ProductionOrderStatus::Cancelado->value,
+            ])
+            ->whereNotNull('due_at')
+            ->whereDate('due_at', '<', now()->toDateString());
+    }
+
+    /**
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeRecentlyDelivered(Builder $query): Builder
+    {
+        return $query
+            ->where('status', ProductionOrderStatus::Entregado)
+            ->whereNotNull('delivered_at')
+            ->orderByDesc('delivered_at');
+    }
+
+    /**
+     * Limita OPs a la cartera del vendedor (cotización, venta o quien cotizó).
+     *
+     * @param  Builder<static>  $query
+     * @return Builder<static>
+     */
+    public function scopeForCommercialUser(Builder $query, ?int $userId = null): Builder
+    {
+        $ownerId = $userId ?? \App\Support\CommercialScope::ownerId();
+
+        if ($ownerId === null) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $q) use ($ownerId): void {
+            $q->where('quoted_by_user_id', $ownerId)
+                ->orWhere('user_id', $ownerId)
+                ->orWhereHas('quote', fn (Builder $quote): Builder => $quote->where('user_id', $ownerId))
+                ->orWhereHas('sale', fn (Builder $sale): Builder => $sale->where('user_id', $ownerId));
+        });
+    }
+
+    /** Entrega final al cliente (después de fabricar y facturar). */
+    public function markDelivered(?string $receivedBy = null, bool $notify = true): void
+    {
+        if ($this->status !== ProductionOrderStatus::Completado) {
+            throw new \InvalidArgumentException('Solo se puede entregar una orden completada en planta.');
+        }
+
+        $this->loadMissing(['sale', 'quote.sale']);
+
+        $sale = $this->sale ?? $this->quote?->sale;
+
+        if ($this->quote_id && $sale === null) {
+            throw new \InvalidArgumentException(
+                'Flujo: Cotización → OP → Venta → Entrega. Primero crea la venta/factura.'
+            );
+        }
+
+        if ($sale !== null && $sale->status === SaleStatus::Borrador) {
+            throw new \InvalidArgumentException('Confirma la venta antes de registrar la entrega.');
+        }
+
+        $notes = $this->notes;
+
+        if (filled($receivedBy)) {
+            $line = 'Entrega recibida por: '.mb_strtoupper(trim($receivedBy), 'UTF-8')
+                .' ('.now()->format('d/m/Y H:i').')';
+            $notes = filled($notes) ? rtrim((string) $notes)."\n{$line}" : $line;
         }
 
         $this->forceFill([
             'status' => ProductionOrderStatus::Entregado,
             'delivered_at' => now(),
+            'notes' => $notes,
         ])->save();
+
+        if ($notify) {
+            app(\App\Services\NotifyDeliveryRegistered::class)->handle(
+                $this->fresh(['item', 'quote', 'quotedBy', 'user', 'sale.customer', 'sale.user']) ?? $this
+            );
+        }
     }
 
     // -----------------------------------------------------------------

@@ -3,16 +3,22 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasSalesAccess;
+use App\Filament\Widgets\PendingDeliveriesTable;
 use App\Filament\Widgets\SalesCrmRankings;
 use App\Filament\Widgets\SalesCrmStatsOverview;
 use App\Filament\Widgets\SalesCrmTrendChart;
 use App\Filament\Widgets\UpcomingVisitsTable;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Widgets\Widget;
 use Filament\Widgets\WidgetConfiguration;
 use UnitEnum;
 
+/**
+ * Panel CRM consolidado (admin / gerencia).
+ * El vendedor usa Inicio; este ítem no aparece en su menú.
+ */
 class SalesDashboard extends Page
 {
     use HasSalesAccess;
@@ -21,7 +27,7 @@ class SalesDashboard extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar-square';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
     protected static ?string $navigationLabel = 'Panel de ventas';
 
@@ -31,8 +37,18 @@ class SalesDashboard extends Page
 
     protected static ?int $navigationSort = 1;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Vendedor: su panel es Inicio (evita duplicar el mismo resumen).
+        return ! CommercialScope::seesOnlyOwnData();
+    }
+
     public static function canAccess(): bool
     {
+        if (CommercialScope::seesOnlyOwnData()) {
+            return false;
+        }
+
         return static::canAccessSalesModule();
     }
 
@@ -55,6 +71,7 @@ class SalesDashboard extends Page
             SalesCrmStatsOverview::class,
             SalesCrmTrendChart::class,
             UpcomingVisitsTable::class,
+            PendingDeliveriesTable::class,
             SalesCrmRankings::class,
         ];
     }

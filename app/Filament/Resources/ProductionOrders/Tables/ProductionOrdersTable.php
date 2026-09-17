@@ -64,11 +64,37 @@ class ProductionOrdersTable
                 TextColumn::make('due_at')
                     ->label('Entrega pactada')
                     ->date('d/m/Y')
-                    ->sortable(),
+                    ->sortable()
+                    ->color(fn ($record): ?string => $record->isDeliveryOverdue() ? 'danger' : null)
+                    ->description(fn ($record): ?string => $record->isDeliveryOverdue() ? 'Atrasada' : null)
+                    ->toggleable(),
                 TextColumn::make('delivered_at')
                     ->label('Entregado')
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('delivery_state')
+                    ->label('Entrega')
+                    ->badge()
+                    ->state(function ($record): string {
+                        if ($record->status === ProductionOrderStatus::Entregado) {
+                            return 'Entregada';
+                        }
+                        if ($record->isReadyForDelivery()) {
+                            return 'Lista';
+                        }
+                        if ($record->isDeliveryOverdue()) {
+                            return 'Atrasada';
+                        }
+
+                        return '—';
+                    })
+                    ->color(fn (string $state): string => match ($state) {
+                        'Entregada' => 'primary',
+                        'Lista' => 'success',
+                        'Atrasada' => 'danger',
+                        default => 'gray',
+                    })
                     ->toggleable(),
             ])
             ->filters([
@@ -101,11 +127,27 @@ class ProductionOrdersTable
                     ->label('Entrega final')
                     ->icon('heroicon-o-truck')
                     ->color('success')
-                    ->requiresConfirmation()
-                    ->modalDescription('Marca la orden como entregada al cliente. Debe estar completada en planta.')
-                    ->visible(fn ($record): bool => $record->status === ProductionOrderStatus::Completado)
-                    ->action(function ($record): void {
-                        $record->markDelivered();
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('received_by')
+                            ->label('Recibido por')
+                            ->placeholder('Nombre de quien recibe')
+                            ->maxLength(120),
+                    ])
+                    ->modalHeading('Registrar entrega')
+                    ->modalDescription('Marca la orden como entregada al cliente. Debe estar Completada y con venta confirmada.')
+                    ->visible(fn ($record): bool => $record->isReadyForDelivery())
+                    ->action(function ($record, array $data): void {
+                        try {
+                            $record->markDelivered($data['received_by'] ?? null);
+                        } catch (\InvalidArgumentException $e) {
+                            Notification::make()
+                                ->title('No se pudo entregar')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
                         Notification::make()
                             ->title('Entrega registrada')
                             ->body("La OP {$record->code} quedó como Entregada.")

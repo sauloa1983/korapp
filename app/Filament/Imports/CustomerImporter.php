@@ -3,6 +3,7 @@
 namespace App\Filament\Imports;
 
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Filament\Actions\Imports\ImportColumn;
 use Filament\Actions\Imports\Importer;
 use Filament\Actions\Imports\Models\Import;
@@ -83,6 +84,18 @@ class CustomerImporter extends Importer
         if ($taxId) {
             $existing = Customer::withTrashed()->where('tax_id', $taxId)->first();
 
+            if ($existing && CommercialScope::owns($existing->user_id)) {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
+
+                return $existing;
+            }
+
+            if ($existing && CommercialScope::seesOnlyOwnData()) {
+                return new Customer;
+            }
+
             if ($existing) {
                 if ($existing->trashed()) {
                     $existing->restore();
@@ -94,6 +107,18 @@ class CustomerImporter extends Importer
 
         if ($email) {
             $existing = Customer::withTrashed()->where('email', $email)->first();
+
+            if ($existing && CommercialScope::owns($existing->user_id)) {
+                if ($existing->trashed()) {
+                    $existing->restore();
+                }
+
+                return $existing;
+            }
+
+            if ($existing && CommercialScope::seesOnlyOwnData()) {
+                return new Customer;
+            }
 
             if ($existing) {
                 if ($existing->trashed()) {
@@ -116,6 +141,12 @@ class CustomerImporter extends Importer
 
     protected function beforeSave(): void
     {
+        if (CommercialScope::seesOnlyOwnData()) {
+            $this->record->user_id = auth()->id() ?? $this->import->user_id;
+
+            return;
+        }
+
         if (blank($this->record->user_id)) {
             $this->record->user_id = auth()->id() ?? $this->import->user_id;
         }

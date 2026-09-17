@@ -6,6 +6,7 @@ namespace App\Policies;
 
 use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CustomerPolicy
@@ -19,7 +20,8 @@ class CustomerPolicy
 
     public function view(AuthUser $authUser, Customer $customer): bool
     {
-        return $authUser->can('View:Customer');
+        return $authUser->can('View:Customer')
+            && CommercialScope::owns($customer->user_id);
     }
 
     public function create(AuthUser $authUser): bool
@@ -27,14 +29,21 @@ class CustomerPolicy
         return $authUser->can('Create:Customer');
     }
 
+    public function import(AuthUser $authUser): bool
+    {
+        return $authUser->can('Import:Customer');
+    }
+
     public function update(AuthUser $authUser, Customer $customer): bool
     {
-        return $authUser->can('Update:Customer');
+        return $authUser->can('Update:Customer')
+            && CommercialScope::owns($customer->user_id);
     }
 
     public function delete(AuthUser $authUser, Customer $customer): bool
     {
-        return $authUser->can('Delete:Customer');
+        return $authUser->can('Delete:Customer')
+            && CommercialScope::owns($customer->user_id);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -44,12 +53,14 @@ class CustomerPolicy
 
     public function restore(AuthUser $authUser, Customer $customer): bool
     {
-        return $authUser->can('Restore:Customer');
+        return $authUser->can('Restore:Customer')
+            && CommercialScope::owns($customer->user_id);
     }
 
     public function forceDelete(AuthUser $authUser, Customer $customer): bool
     {
-        return $authUser->can('ForceDelete:Customer');
+        return $authUser->can('ForceDelete:Customer')
+            && CommercialScope::owns($customer->user_id);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool

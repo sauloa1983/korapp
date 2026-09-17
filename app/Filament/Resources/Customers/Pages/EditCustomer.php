@@ -8,12 +8,18 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Enums\Width;
 
 class EditCustomer extends EditRecord
 {
     use RedirectsToResourceIndex;
 
     protected static string $resource = CustomerResource::class;
+
+    public function getMaxContentWidth(): Width | string | null
+    {
+        return Width::Full;
+    }
 
     protected function getHeaderActions(): array
     {

@@ -7,7 +7,13 @@ use App\Filament\Widgets\DashboardSummaryCards;
 use App\Filament\Widgets\OperatorPendingJobsTable;
 use App\Filament\Widgets\OperatorRecentJobsTable;
 use App\Filament\Widgets\OperatorStatsOverview;
+use App\Filament\Widgets\PendingDeliveriesTable;
+use App\Filament\Widgets\SalesCrmRankings;
+use App\Filament\Widgets\SalesCrmStatsOverview;
+use App\Filament\Widgets\SalesCrmTrendChart;
 use App\Filament\Widgets\SalesTrendChart;
+use App\Filament\Widgets\UpcomingVisitsTable;
+use App\Support\CommercialScope;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -21,7 +27,7 @@ class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
 
-    protected static string|UnitEnum|null $navigationGroup = 'General';
+    protected static string|UnitEnum|null $navigationGroup = 'Principal';
 
     protected static ?int $navigationSort = -1;
 
@@ -48,6 +54,10 @@ class Dashboard extends BaseDashboard
             return 'Tus pendientes, productividad y accesos rápidos de planta.';
         }
 
+        if (CommercialScope::seesOnlyOwnData()) {
+            return 'Tu resumen comercial: ventas, embudo y seguimientos.';
+        }
+
         return 'Resumen claro de ventas, clientes y producción.';
     }
 
@@ -64,10 +74,22 @@ class Dashboard extends BaseDashboard
             ];
         }
 
+        // Vendedor: solo ventas (sus datos). Sin producción ni consolidado de planta.
+        if (CommercialScope::seesOnlyOwnData()) {
+            return [
+                SalesCrmStatsOverview::class,
+                SalesCrmTrendChart::class,
+                UpcomingVisitsTable::class,
+                PendingDeliveriesTable::class,
+                SalesCrmRankings::class,
+            ];
+        }
+
         return [
             DashboardStatsOverview::class,
             SalesTrendChart::class,
             DashboardSummaryCards::class,
+            PendingDeliveriesTable::class,
         ];
     }
 
@@ -85,7 +107,7 @@ class Dashboard extends BaseDashboard
 
     public function filtersForm(Schema $schema): Schema
     {
-        if (auth()->user()?->isOperario()) {
+        if (auth()->user()?->isOperario() || CommercialScope::seesOnlyOwnData()) {
             return $schema->components([]);
         }
 

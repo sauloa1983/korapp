@@ -7,6 +7,7 @@ use App\Filament\Pages\ReasignarClientes;
 use App\Filament\Resources\Customers\CustomerResource;
 use App\Filament\Resources\Customers\Widgets\CustomerStatsOverview;
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\ImportAction;
@@ -29,7 +30,7 @@ class ListCustomers extends ListRecords
                 ->color('gray')
                 ->url(route('customers.import-template'))
                 ->openUrlInNewTab(false)
-                ->visible(fn (): bool => auth()->user()?->can('create', Customer::class) ?? false),
+                ->visible(fn (): bool => auth()->user()?->can('import', Customer::class) ?? false),
             ImportAction::make()
                 ->label('Importar Excel/CSV')
                 ->importer(CustomerImporter::class)
@@ -37,7 +38,9 @@ class ListCustomers extends ListRecords
                 ->icon('heroicon-o-arrow-up-tray')
                 ->modalHeading('Importar clientes')
                 ->modalDescription('Usa el formato descargable. Si trabajas en Excel, guarda el archivo como CSV UTF-8 antes de subirlo. Si el NIT o correo ya existe, se actualiza el cliente.')
-                ->chunkSize(100),
+                ->chunkSize(100)
+                ->visible(fn (): bool => auth()->user()?->can('import', Customer::class) ?? false)
+                ->authorize('import', Customer::class),
             Action::make('reassign')
                 ->label('Reasignar cartera')
                 ->icon('heroicon-o-arrows-right-left')
@@ -61,26 +64,37 @@ class ListCustomers extends ListRecords
         ];
     }
 
+    protected function customersQuery(): Builder
+    {
+        return CommercialScope::constrain(Customer::query());
+    }
+
     /**
      * @return array<string, Tab>
      */
     public function getTabs(): array
     {
-        return [
+        $tabs = [
             'all' => Tab::make('Todos')
-                ->badge(fn (): int => Customer::query()->count()),
+                ->badge(fn (): int => $this->customersQuery()->count()),
             'active' => Tab::make('Activos')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_active', true))
-                ->badge(fn (): int => Customer::query()->where('is_active', true)->count())
+                ->badge(fn (): int => $this->customersQuery()->where('is_active', true)->count())
                 ->badgeColor('success'),
-            'unassigned' => Tab::make('Sin asignar')
+        ];
+
+        if (! CommercialScope::seesOnlyOwnData()) {
+            $tabs['unassigned'] = Tab::make('Sin asignar')
                 ->modifyQueryUsing(fn (Builder $query): Builder => $query->unassigned())
                 ->badge(fn (): int => Customer::query()->unassigned()->count())
-                ->badgeColor('warning'),
-            'inactive' => Tab::make('Inactivos')
-                ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_active', false))
-                ->badge(fn (): int => Customer::query()->where('is_active', false)->count())
-                ->badgeColor('gray'),
-        ];
+                ->badgeColor('warning');
+        }
+
+        $tabs['inactive'] = Tab::make('Inactivos')
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('is_active', false))
+            ->badge(fn (): int => $this->customersQuery()->where('is_active', false)->count())
+            ->badgeColor('gray');
+
+        return $tabs;
     }
 }

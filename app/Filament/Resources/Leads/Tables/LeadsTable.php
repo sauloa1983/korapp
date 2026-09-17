@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Leads\Tables;
 
 use App\Enums\LeadStage;
 use App\Models\Lead;
+use App\Support\CommercialScope;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -98,12 +99,14 @@ class LeadsTable
                             'assigned' => $query->assigned(),
                             default => $query,
                         };
-                    }),
+                    })
+                    ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData()),
                 SelectFilter::make('user_id')
                     ->label('Vendedor')
                     ->relationship('user', 'name')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData()),
             ])
             ->recordActions([
                 Action::make('viewCustomer')
@@ -120,6 +123,7 @@ class LeadsTable
                     BulkAction::make('assignSeller')
                         ->label('Asignar vendedor')
                         ->icon('heroicon-o-user-plus')
+                        ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData())
                         ->form([
                             Select::make('user_id')
                                 ->label('Vendedor')
@@ -142,6 +146,7 @@ class LeadsTable
                         ->label('Dejar sin asignar')
                         ->icon('heroicon-o-user-minus')
                         ->color('warning')
+                        ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData())
                         ->requiresConfirmation()
                         ->modalDescription('Los prospectos seleccionados quedarán sin vendedor asignado.')
                         ->action(function (Collection $records): void {

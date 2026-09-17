@@ -10,6 +10,7 @@ use App\Filament\Resources\Customers\RelationManagers\VisitsRelationManager;
 use App\Filament\Resources\Customers\Schemas\CustomerForm;
 use App\Filament\Resources\Customers\Tables\CustomersTable;
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -24,15 +25,20 @@ class CustomerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-group';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Gestión';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'Cliente';
 
     protected static ?string $pluralModelLabel = 'Clientes';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return CommercialScope::constrain(parent::getEloquentQuery());
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -63,7 +69,7 @@ class CustomerResource extends Resource
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
-        return parent::getRecordRouteBindingEloquentQuery()
+        return CommercialScope::constrain(parent::getRecordRouteBindingEloquentQuery())
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

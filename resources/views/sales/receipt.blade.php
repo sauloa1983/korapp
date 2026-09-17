@@ -118,8 +118,29 @@
                     <td colspan="4" class="num">Total</td>
                     <td class="num">{{ money($sale->total) }}</td>
                 </tr>
+                @if ($sale->advancePaid() > 0)
+                    <tr>
+                        <td colspan="4" class="num" style="font-weight:600;">Anticipo</td>
+                        <td class="num" style="font-weight:600;">{{ money($sale->advancePaid()) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="num">Saldo pendiente</td>
+                        <td class="num">{{ money($sale->balanceDue()) }}</td>
+                    </tr>
+                @endif
             </tfoot>
         </table>
+
+        @if ($sale->payment_method || $sale->advancePaid() > 0)
+            <div class="notes">
+                @if ($sale->payment_method)
+                    <div><strong>Forma de pago:</strong> {{ $sale->payment_method->getLabel() }}</div>
+                @endif
+                @if ($sale->advancePaid() > 0)
+                    <div><strong>Anticipo:</strong> {{ money($sale->advancePaid()) }} · <strong>Saldo:</strong> {{ money($sale->balanceDue()) }}</div>
+                @endif
+            </div>
+        @endif
 
         @if ($sale->notes)
             <div class="notes"><strong>Notas:</strong> {{ $sale->notes }}</div>

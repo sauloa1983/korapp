@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Item;
 use App\Models\Sale;
 use App\Models\Warehouse;
+use App\Support\CommercialScope;
 use App\Support\Tax;
 use BackedEnum;
 use Filament\Notifications\Notification;
@@ -20,7 +21,7 @@ class PuntoDeVenta extends Page
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
     protected static ?string $title = 'Punto de venta';
 
@@ -28,13 +29,15 @@ class PuntoDeVenta extends Page
 
     protected static bool $shouldRegisterNavigation = false;
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 9;
 
     public string $search = '';
 
     public ?int $customerId = null;
 
     public ?int $warehouseId = null;
+
+    public ?string $advanceAmount = null;
 
     /** @var array<int, array{item_id:int, sku:string, name:string, price:float, qty:float}> */
     public array $cart = [];
@@ -77,10 +80,11 @@ class PuntoDeVenta extends Page
 
     public function getCustomersProperty(): Collection
     {
-        return Customer::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
+        return CommercialScope::constrain(
+            Customer::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+        )->get();
     }
 
     public function getWarehousesProperty(): Collection
@@ -168,6 +172,7 @@ class PuntoDeVenta extends Page
                 'customer_id' => $this->customerId,
                 'warehouse_id' => $this->warehouseId,
                 'user_id' => Auth::id(),
+                'advance_amount' => \App\Support\Money::parseInput($this->advanceAmount) ?? 0,
             ]);
 
             foreach ($lines as $line) {
@@ -180,6 +185,12 @@ class PuntoDeVenta extends Page
 
             $sale->confirm(Auth::id());
             $sale->refresh();
+
+            $advance = $sale->advancePaid();
+            if ($advance > (float) $sale->total) {
+                $sale->forceFill(['advance_amount' => (float) $sale->total])->save();
+                $sale->refresh();
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             Notification::make()
                 ->title('No se pudo cobrar')
@@ -192,6 +203,7 @@ class PuntoDeVenta extends Page
 
         $this->cart = [];
         $this->customerId = null;
+        $this->advanceAmount = null;
         $this->lastSaleId = $sale->id;
 
         Notification::make()

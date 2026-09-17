@@ -92,7 +92,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['super_admin', 'Vendedor', 'Operario', 'panel_user']);
+        return $this->hasAnyRole(['super_admin', 'Vendedor', 'Gerencia', 'Operario', 'panel_user']);
     }
 
     public function isOperario(): bool
@@ -103,6 +103,25 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function isSuperAdmin(): bool
     {
         return $this->hasRole('super_admin');
+    }
+
+    /** Vendedor de campo: ve solo su cartera (no aplica a Gerencia/admin). */
+    public function seesOnlyOwnCommercialData(): bool
+    {
+        if ($this->isSuperAdmin() || $this->hasRole('Gerencia')) {
+            return false;
+        }
+
+        return $this->hasRole('Vendedor');
+    }
+
+    public function receivesProductionAlerts(): bool
+    {
+        return $this->hasAnyRole(config('korapp.production_completed_alert_roles', [
+            'super_admin',
+            'Vendedor',
+            'Gerencia',
+        ]));
     }
 
     /** @return list<string> */

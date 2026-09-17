@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
+use App\Filament\Resources\Processes\ProcessResource;
 use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
@@ -21,7 +22,7 @@ return [
 
     'shield_resource' => [
         'slug' => 'shield/roles',
-        'show_model_path' => true,
+        'show_model_path' => false,
         'cluster' => null,
         'tabs' => [
             'pages' => true,
@@ -127,7 +128,8 @@ return [
         'generate' => true,
         'methods' => [
             'viewAny', 'view', 'create', 'update', 'delete', 'deleteAny', 'restore',
-            'forceDelete', 'forceDeleteAny', 'restoreAny', 'replicate', 'reorder',
+            'forceDelete', 'forceDeleteAny', 'restoreAny', 'replicate',
+            'import',
         ],
         'single_parameter_methods' => [
             'viewAny',
@@ -135,7 +137,7 @@ return [
             'deleteAny',
             'forceDeleteAny',
             'restoreAny',
-            'reorder',
+            'import',
         ],
     ],
 
@@ -175,6 +177,10 @@ return [
                 'create',
                 'update',
                 'delete',
+            ],
+            // Solo Procesos tiene tabla con drag-and-drop (sort_order).
+            ProcessResource::class => [
+                'reorder',
             ],
         ],
         'exclude' => [

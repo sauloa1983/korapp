@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Customers\Tables;
 
 use App\Filament\Support\Tables\IdentityColumns;
 use App\Models\Customer;
+use App\Support\CommercialScope;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
@@ -119,12 +120,14 @@ class CustomersTable
                             'assigned' => $query->assigned(),
                             default => $query,
                         };
-                    }),
+                    })
+                    ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData()),
                 SelectFilter::make('user_id')
                     ->label('Vendedor')
                     ->relationship('user', 'name')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData()),
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -152,6 +155,9 @@ class CustomersTable
                     BulkAction::make('assignSeller')
                         ->label('Asignar vendedor')
                         ->icon('heroicon-o-user-plus')
+                        ->visible(fn (): bool => (! CommercialScope::seesOnlyOwnData())
+                            && (auth()->user()?->can('Update:Customer') ?? false)
+                            && (auth()->user()?->can('View:ReasignarClientes') ?? false))
                         ->form([
                             Select::make('user_id')
                                 ->label('Vendedor')
@@ -173,6 +179,9 @@ class CustomersTable
                         ->label('Dejar sin asignar')
                         ->icon('heroicon-o-user-minus')
                         ->color('warning')
+                        ->visible(fn (): bool => (! CommercialScope::seesOnlyOwnData())
+                            && (auth()->user()?->can('Update:Customer') ?? false)
+                            && (auth()->user()?->can('View:ReasignarClientes') ?? false))
                         ->requiresConfirmation()
                         ->modalDescription('Los clientes seleccionados quedarán sin vendedor asignado.')
                         ->action(function (Collection $records): void {

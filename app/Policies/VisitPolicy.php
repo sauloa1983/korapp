@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Visit;
+use App\Support\CommercialScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -19,7 +20,8 @@ class VisitPolicy
 
     public function view(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('View:Visit');
+        return $authUser->can('View:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,12 +31,14 @@ class VisitPolicy
 
     public function update(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('Update:Visit');
+        return $authUser->can('Update:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function delete(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('Delete:Visit');
+        return $authUser->can('Delete:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function deleteAny(AuthUser $authUser): bool
@@ -44,12 +48,14 @@ class VisitPolicy
 
     public function restore(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('Restore:Visit');
+        return $authUser->can('Restore:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function forceDelete(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('ForceDelete:Visit');
+        return $authUser->can('ForceDelete:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
@@ -64,7 +70,8 @@ class VisitPolicy
 
     public function replicate(AuthUser $authUser, Visit $visit): bool
     {
-        return $authUser->can('Replicate:Visit');
+        return $authUser->can('Replicate:Visit')
+            && CommercialScope::owns($visit->user_id);
     }
 
     public function reorder(AuthUser $authUser): bool

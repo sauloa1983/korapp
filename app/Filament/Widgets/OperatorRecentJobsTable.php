@@ -22,7 +22,7 @@ class OperatorRecentJobsTable extends TableWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->isOperario() === true;
+        return auth()->user()?->hasRole('Operario') === true;
     }
 
     public function table(Table $table): Table
@@ -49,11 +49,13 @@ class OperatorRecentJobsTable extends TableWidget
                     ->label('OP')
                     ->weight('bold'),
                 TextColumn::make('process.name')
-                    ->label('Etapa'),
+                    ->label('Etapa')
+                    ->toggleable(),
                 TextColumn::make('duration_for_humans')
                     ->label('Tiempo')
                     ->badge()
-                    ->color('success'),
+                    ->color('success')
+                    ->toggleable(),
             ]);
     }
 }

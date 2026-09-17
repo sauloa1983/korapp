@@ -13,6 +13,7 @@ use App\Models\Item;
 use App\Models\Lead;
 use App\Models\SernaCatalogProduct;
 use App\Services\Serna\SernaQuotationEngine;
+use App\Support\CommercialScope;
 use App\Support\Money;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
@@ -22,8 +23,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Throwable;
 
@@ -43,21 +46,20 @@ class QuoteForm
                     ->extraAttributes(['class' => 'fi-quote-edit-layout'])
                     ->schema([
                         Section::make('Encabezado comercial')
-                            ->description('Misma estructura del cotizador Serna.')
+                            ->description('Misma estructura del cotizador comercial.')
                             ->columns(2)
                             ->columnSpan(['default' => 'full', 'lg' => 8])
                             ->extraAttributes(['class' => 'fi-quote-edit-header'])
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Empresa / Cliente')
-                                    ->relationship(
-                                        name: 'customer',
-                                        titleAttribute: 'name',
-                                        modifyQueryUsing: fn ($query) => $query->orderBy('name'),
-                                    )
-                                    ->getOptionLabelFromRecordUsing(fn (Customer $record): string => $record->displayName()
-                                        .(filled($record->tax_id) ? " · {$record->tax_id}" : ' · sin documento'))
-                                    ->searchable(['name', 'company_name', 'contact_name', 'tax_id', 'email', 'city'])
+                                    ->options(function (Get $get): array {
+                                        return static::customerOptions(
+                                            filled($get('customer_id')) ? (int) $get('customer_id') : null,
+                                        );
+                                    })
+                                    ->getOptionLabelUsing(fn ($value): ?string => static::customerOptionLabel($value))
+                                    ->searchable()
                                     ->preload()
                                     ->nullable()
                                     ->live()
@@ -67,7 +69,8 @@ class QuoteForm
                                         }
 
                                         $customer = Customer::query()->find($state);
-                                        $set('contact_name', $customer?->contact_name ?: $customer?->name);
+                                        $set('lead_id', null);
+                                        $set('contact_name', $customer?->personContactName() ?: $customer?->contact_name ?: $customer?->name);
                                         if ($customer?->is_retenedor) {
                                             $set('withholding_rate', $customer->retenedor_percent);
                                         }
@@ -77,17 +80,25 @@ class QuoteForm
                                     ->createOptionModalHeading('Nuevo cliente'),
                                 Select::make('lead_id')
                                     ->label('Prospecto')
-                                    ->relationship(
-                                        name: 'lead',
-                                        titleAttribute: 'name',
-                                        modifyQueryUsing: fn ($query) => $query->orderBy('name'),
-                                    )
-                                    ->getOptionLabelFromRecordUsing(fn (Lead $record): string => filled($record->company)
-                                        ? "{$record->name} ({$record->company})"
-                                        : (string) $record->name)
-                                    ->searchable(['name', 'company', 'email', 'phone'])
+                                    ->options(function (Get $get): array {
+                                        return static::leadOptions(
+                                            filled($get('lead_id')) ? (int) $get('lead_id') : null,
+                                        );
+                                    })
+                                    ->getOptionLabelUsing(fn ($value): ?string => static::leadOptionLabel($value))
+                                    ->searchable()
                                     ->preload()
-                                    ->nullable(),
+                                    ->nullable()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $set): void {
+                                        if (! $state) {
+                                            return;
+                                        }
+
+                                        $lead = Lead::query()->find($state);
+                                        $set('customer_id', null);
+                                        $set('contact_name', $lead?->name);
+                                    }),
                                 Select::make('status')
                                     ->label('Estado')
                                     ->options(QuoteStatus::class)
@@ -427,7 +438,7 @@ class QuoteForm
 
         $description = implode(' · ', $parts);
         if ($description === '') {
-            $description = $typeLabel !== '' ? $typeLabel : 'Ítem Serna';
+            $description = $typeLabel !== '' ? $typeLabel : 'Ítem de cotización';
         }
 
         return mb_substr($description, 0, 2000, 'UTF-8');
@@ -457,9 +468,9 @@ class QuoteForm
         };
 
         $name = match ($sku) {
-            'SERNA-LAMINA' => 'Lámina acrílica Serna',
+            'SERNA-LAMINA' => 'Lámina acrílica',
             'SERNA-MANUAL' => 'Transporte / instalación / valor manual',
-            default => 'Servicio / manufactura Serna',
+            default => 'Servicio / manufactura',
         };
 
         $itemType = match ($sku) {
@@ -479,5 +490,82 @@ class QuoteForm
                 'price' => 0,
                 'is_active' => true,
             ])->id;
+    }
+
+    /** @return array<string, string> */
+    public static function customerOptions(?int $includeId = null): array
+    {
+        return CommercialScope::constrain(
+            Customer::query()
+                ->where(function (Builder $query) use ($includeId): void {
+                    $query->where('is_active', true);
+
+                    if ($includeId) {
+                        $query->orWhere($query->getModel()->getQualifiedKeyName(), $includeId);
+                    }
+                })
+                ->orderBy('name')
+        )
+            ->get()
+            ->mapWithKeys(fn (Customer $customer): array => [
+                (string) $customer->id => static::customerOptionLabel($customer->id) ?? (string) $customer->name,
+            ])
+            ->all();
+    }
+
+    public static function customerOptionLabel(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $customer = CommercialScope::constrain(Customer::query())->find($value)
+            ?? (CommercialScope::seesOnlyOwnData() ? null : Customer::query()->find($value));
+
+        if (! $customer) {
+            return null;
+        }
+
+        return $customer->displayName()
+            .(filled($customer->tax_id) ? " · {$customer->tax_id}" : ' · sin documento');
+    }
+
+    /** @return array<string, string> */
+    public static function leadOptions(?int $includeId = null): array
+    {
+        return CommercialScope::constrain(
+            Lead::query()
+                ->where(function (Builder $query) use ($includeId): void {
+                    $query->open();
+
+                    if ($includeId) {
+                        $query->orWhere($query->getModel()->getQualifiedKeyName(), $includeId);
+                    }
+                })
+                ->orderBy('name')
+        )
+            ->get()
+            ->mapWithKeys(fn (Lead $lead): array => [
+                (string) $lead->id => static::leadOptionLabel($lead->id) ?? (string) $lead->name,
+            ])
+            ->all();
+    }
+
+    public static function leadOptionLabel(mixed $value): ?string
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        $lead = CommercialScope::constrain(Lead::query())->find($value)
+            ?? (CommercialScope::seesOnlyOwnData() ? null : Lead::query()->find($value));
+
+        if (! $lead) {
+            return null;
+        }
+
+        return filled($lead->company)
+            ? "{$lead->name} ({$lead->company})"
+            : (string) $lead->name;
     }
 }

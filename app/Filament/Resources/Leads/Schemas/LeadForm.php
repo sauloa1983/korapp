@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Leads\Schemas;
 use App\Enums\LeadStage;
 use App\Models\Customer;
 use App\Models\User;
+use App\Support\CommercialScope;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -90,8 +91,14 @@ class LeadForm
                             ->searchable()
                             ->preload()
                             ->nullable()
+                            ->default(fn (): ?int => auth()->id())
                             ->placeholder('Selecciona un vendedor')
-                            ->helperText('Si no asignas un vendedor, quedará sin asignar.'),
+                            ->helperText('Si no asignas un vendedor, quedará sin asignar.')
+                            ->visible(fn (): bool => ! CommercialScope::seesOnlyOwnData())
+                            ->dehydrated()
+                            ->dehydrateStateUsing(fn ($state): ?int => CommercialScope::seesOnlyOwnData()
+                                ? auth()->id()
+                                : ($state !== null && $state !== '' ? (int) $state : null)),
                         \App\Filament\Support\MoneyFormat::copInput('value', 'Valor estimado del negocio')
                             ->placeholder('500.000')
                             ->helperText('Se formatea solo. Ej: 500000 → 500.000')
@@ -110,7 +117,9 @@ class LeadForm
                             ->relationship(
                                 name: 'customer',
                                 titleAttribute: 'name',
-                                modifyQueryUsing: fn (Builder $query): Builder => $query->orderBy('name'),
+                                modifyQueryUsing: fn (Builder $query): Builder => CommercialScope::constrain(
+                                    $query->orderBy('name')
+                                ),
                             )
                             ->getOptionLabelFromRecordUsing(fn (Customer $record): string => $record->displayName()
                                 .(filled($record->tax_id) ? " · {$record->tax_id}" : ''))

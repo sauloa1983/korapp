@@ -126,6 +126,7 @@ class ModelLabels
             'super_admin' => 'Administrador',
             'Operario' => 'Operario',
             'Vendedor' => 'Vendedor',
+            'Gerencia' => 'Gerencia',
             default => $role,
         };
     }

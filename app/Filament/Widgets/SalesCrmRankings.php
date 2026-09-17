@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Sale;
+use App\Support\CommercialScope;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -28,14 +29,21 @@ class SalesCrmRankings extends Widget
         );
     }
 
+    public function showsSellerRanking(): bool
+    {
+        return ! CommercialScope::seesOnlyOwnData();
+    }
+
     /** @return Collection<int, object{name: string, revenue: float, deals: int}> */
     public function getTopClients(): Collection
     {
-        return Sale::query()
-            ->select('customer_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as deals'))
-            ->where('status', SaleStatus::Confirmada)
-            ->whereNotNull('customer_id')
-            ->where('sold_at', '>=', now()->subDays(90)->startOfDay())
+        return CommercialScope::constrain(
+            Sale::query()
+                ->select('customer_id', DB::raw('SUM(total) as revenue'), DB::raw('COUNT(*) as deals'))
+                ->where('status', SaleStatus::Confirmada)
+                ->whereNotNull('customer_id')
+                ->where('sold_at', '>=', now()->subDays(90)->startOfDay())
+        )
             ->groupBy('customer_id')
             ->orderByDesc('revenue')
             ->limit(5)
@@ -54,6 +62,10 @@ class SalesCrmRankings extends Widget
     /** @return Collection<int, object{name: string, deals: int, revenue: float}> */
     public function getTopSellers(): Collection
     {
+        if (! $this->showsSellerRanking()) {
+            return collect();
+        }
+
         return Sale::query()
             ->select(
                 'user_id',

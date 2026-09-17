@@ -21,7 +21,7 @@ class CreateProductionOrderFromQuoteAction
             ->icon('heroicon-o-cog-6-tooth')
             ->color('warning')
             ->modalHeading('Crear orden de producción')
-            ->modalDescription('Flujo: Cotización → OP → Venta. En cotizaciones Serna se crea 1 OP por pieza (o 1 por cotización) con la secuencia de etapas adentro; en catálogo, 1 OP por producto terminado.')
+            ->modalDescription('Solo cotizaciones validadas y aceptadas. Flujo del trabajo: Cotización → Orden de producción → Venta → Entrega.')
             ->form([
                 CheckboxList::make('process_ids')
                     ->label('Procesos de producción')
@@ -34,6 +34,18 @@ class CreateProductionOrderFromQuoteAction
             ])
             ->action(function (array $data, mixed $record = null, mixed $livewire = null) {
                 $quote = static::resolveQuote($record, $livewire);
+
+                $errors = $quote->productionValidationErrors();
+                if ($errors !== []) {
+                    Notification::make()
+                        ->title('Cotización incompleta')
+                        ->body(implode(' · ', $errors))
+                        ->danger()
+                        ->persistent()
+                        ->send();
+
+                    return null;
+                }
 
                 return static::execute($quote, $data);
             });

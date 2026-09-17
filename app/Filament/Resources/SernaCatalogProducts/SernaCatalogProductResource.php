@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\SernaCatalogProducts;
 
-use App\Filament\Concerns\RestrictsOperarioAccess;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\SernaCatalogProducts\Pages\CreateSernaCatalogProduct;
 use App\Filament\Resources\SernaCatalogProducts\Pages\EditSernaCatalogProduct;
 use App\Filament\Resources\SernaCatalogProducts\Pages\ListSernaCatalogProducts;
@@ -20,21 +20,21 @@ use UnitEnum;
 
 class SernaCatalogProductResource extends Resource
 {
-    use RestrictsOperarioAccess;
+    use RestrictsToSuperAdmin;
 
     protected static ?string $model = SernaCatalogProduct::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Lista de precios';
+    protected static string|UnitEnum|null $navigationGroup = 'Precios';
 
     protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationLabel = 'Productos';
 
-    protected static ?string $modelLabel = 'Producto Serna';
+    protected static ?string $modelLabel = 'Producto de catálogo';
 
-    protected static ?string $pluralModelLabel = 'Productos Serna';
+    protected static ?string $pluralModelLabel = 'Productos de catálogo';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -57,11 +57,11 @@ class SernaCatalogProductResource extends Resource
         return $table
             ->defaultSort('sort_order')
             ->columns([
-                TextColumn::make('sku')->label('SKU')->searchable(),
+                TextColumn::make('sku')->label('SKU')->searchable()->toggleable(),
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('category')->label('Categoría')->badge(),
-                MoneyFormat::column('unit_price', 'Precio'),
-                IconColumn::make('is_active')->label('Activo')->boolean(),
+                TextColumn::make('category')->label('Categoría')->badge()->toggleable(),
+                MoneyFormat::column('unit_price', 'Precio')->toggleable(),
+                IconColumn::make('is_active')->label('Activo')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

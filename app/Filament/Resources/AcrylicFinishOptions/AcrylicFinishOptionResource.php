@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AcrylicFinishOptions;
 
 use App\Enums\AcrylicFinishPricingMode;
 use App\Enums\AcrylicFinishType;
+use App\Filament\Concerns\RestrictsToSuperAdmin;
 use App\Filament\Resources\AcrylicFinishOptions\Pages\CreateAcrylicFinishOption;
 use App\Filament\Resources\AcrylicFinishOptions\Pages\EditAcrylicFinishOption;
 use App\Filament\Resources\AcrylicFinishOptions\Pages\ListAcrylicFinishOptions;
@@ -22,11 +23,13 @@ use UnitEnum;
 
 class AcrylicFinishOptionResource extends Resource
 {
+    use RestrictsToSuperAdmin;
+
     protected static ?string $model = AcrylicFinishOption::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Configuración Acrílico';
+    protected static string|UnitEnum|null $navigationGroup = 'Catálogo';
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -75,10 +78,10 @@ class AcrylicFinishOptionResource extends Resource
             ->defaultSort('sort_order')
             ->columns([
                 TextColumn::make('name')->label('Nombre')->searchable(),
-                TextColumn::make('type')->label('Tipo')->badge(),
-                TextColumn::make('pricing_mode')->label('Modo')->badge(),
-                MoneyFormat::column('unit_price', 'Precio'),
-                IconColumn::make('is_active')->label('Activo')->boolean(),
+                TextColumn::make('type')->label('Tipo')->badge()->toggleable(),
+                TextColumn::make('pricing_mode')->label('Modo')->badge()->toggleable(),
+                MoneyFormat::column('unit_price', 'Precio')->toggleable(),
+                IconColumn::make('is_active')->label('Activo')->boolean()->toggleable(),
             ])
             ->recordActions([
                 \Filament\Actions\EditAction::make(),

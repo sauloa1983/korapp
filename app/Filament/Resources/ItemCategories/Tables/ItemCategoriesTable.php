@@ -24,14 +24,17 @@ class ItemCategoriesTable
                 TextColumn::make('parent.name')
                     ->label('Padre')
                     ->placeholder('—')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('items_count')
                     ->label('Artículos')
                     ->counts('items')
-                    ->badge(),
+                    ->badge()
+                    ->toggleable(),
                 IconColumn::make('is_active')
                     ->label('Activa')
-                    ->boolean(),
+                    ->boolean()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),

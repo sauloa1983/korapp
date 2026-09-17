@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Filament\Pages\ConfiguracionEmpresa;
 use App\Filament\Pages\Dashboard;
+use App\Filament\Pages\Entregas;
 use App\Filament\Pages\EscaneoOperario;
 use App\Filament\Pages\ReasignarClientes;
 use App\Filament\Pages\Reportes;
@@ -60,17 +61,22 @@ class TutorialGuide
             ],
             'ventas' => [
                 'title' => 'Ventas y CRM',
-                'goal' => 'Prospectos, cotizaciones y pedidos',
+                'goal' => 'Menú Comercial, prospectos y cotizador',
                 'minutes' => '10 min',
             ],
             'pedido' => [
                 'title' => 'Pedido completo',
                 'goal' => 'Cotización → OP → Venta → Entrega',
-                'minutes' => '8 min',
+                'minutes' => '10 min',
+            ],
+            'entregas' => [
+                'title' => 'Entregas',
+                'goal' => 'Con o sin OP: listas y registro',
+                'minutes' => '4 min',
             ],
             'produccion' => [
                 'title' => 'Producción',
-                'goal' => 'Órdenes, QR y escaneo',
+                'goal' => 'Órdenes, escaneo e inicio del operario',
                 'minutes' => '8 min',
             ],
             'reportes' => [
@@ -109,7 +115,9 @@ class TutorialGuide
             'embudo' => rescue(fn () => SalesPipeline::getUrl(), null, false),
             'agenda' => rescue(fn () => VisitResource::getUrl('index'), null, false),
             'cotizaciones' => rescue(fn () => QuoteResource::getUrl('index'), null, false),
+            'cotizador' => rescue(fn () => \App\Filament\Pages\CotizadorAcrilico::getUrl(), null, false),
             'ventas' => rescue(fn () => SaleResource::getUrl('index'), null, false),
+            'entregas' => rescue(fn () => Entregas::getUrl(), null, false),
             'procesos' => rescue(fn () => ProcessResource::getUrl('index'), null, false),
             'ordenes' => rescue(fn () => ProductionOrderResource::getUrl('index'), null, false),
             'escaneo' => rescue(fn () => EscaneoOperario::getUrl(), null, false),

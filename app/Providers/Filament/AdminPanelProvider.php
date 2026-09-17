@@ -60,7 +60,8 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarWidth('15rem')
             ->globalSearch(false)
             ->userMenu(true, UserMenuPosition::Sidebar)
-            ->databaseNotifications(false)
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('15s')
             ->profile(EditProfile::class, isSimple: false)
             ->userMenuItems([
                 'profile' => Action::make('profile')
@@ -79,17 +80,16 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => view('filament.hooks.company-theme')->render(),
             )
             ->navigationGroups([
-                NavigationGroup::make('General'),
-                NavigationGroup::make('Ventas'),
-                NavigationGroup::make('Configuración Acrílico')
+                NavigationGroup::make('Principal'),
+                NavigationGroup::make('Comercial'),
+                NavigationGroup::make('Catálogo')
                     ->collapsed(),
-                NavigationGroup::make('Lista de precios')
+                NavigationGroup::make('Precios')
                     ->collapsed(),
-                NavigationGroup::make('Gestión'),
                 NavigationGroup::make('Producción'),
                 NavigationGroup::make('Reportes'),
-                NavigationGroup::make('Auditoría'),
-                NavigationGroup::make('Seguridad'),
+                NavigationGroup::make('Actividad'),
+                NavigationGroup::make('Accesos'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -114,7 +114,7 @@ class AdminPanelProvider extends PanelProvider
             ], isPersistent: true)
             ->plugin(
                 FilamentShieldPlugin::make()
-                    ->navigationGroup('Seguridad')
+                    ->navigationGroup('Accesos')
             );
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ProductionOrders\Pages;
 
 use App\Filament\Resources\Concerns\RedirectsToResourceIndex;
-use App\Enums\ProductionOrderStatus;
 use App\Filament\Resources\ProductionOrders\ProductionOrderResource;
 use App\Filament\Resources\ProductionOrders\Support\OrderCodeModal;
 use Filament\Actions\Action;
@@ -36,10 +35,27 @@ class EditProductionOrder extends EditRecord
                 ->label('Entrega final')
                 ->icon('heroicon-o-truck')
                 ->color('success')
-                ->requiresConfirmation()
-                ->visible(fn (): bool => $this->getRecord()->status === ProductionOrderStatus::Completado)
-                ->action(function (): void {
-                    $this->getRecord()->markDelivered();
+                ->form([
+                    \Filament\Forms\Components\TextInput::make('received_by')
+                        ->label('Recibido por')
+                        ->placeholder('Nombre de quien recibe')
+                        ->maxLength(120),
+                ])
+                ->modalHeading('Registrar entrega')
+                ->modalDescription('Flujo: Cotización → OP → Venta → Entrega. Confirma que el cliente ya recibió el trabajo.')
+                ->visible(fn (): bool => $this->getRecord()->isReadyForDelivery())
+                ->action(function (array $data): void {
+                    try {
+                        $this->getRecord()->markDelivered($data['received_by'] ?? null);
+                    } catch (\InvalidArgumentException $e) {
+                        Notification::make()
+                            ->title('No se pudo entregar')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
                     Notification::make()
                         ->title('Entrega registrada')
                         ->success()

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Processes\Tables;
 
 use App\Enums\ProcessDepartment;
+use App\Models\Process;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -21,11 +22,13 @@ class ProcessesTable
         return $table
             ->defaultSort('sort_order')
             ->reorderable('sort_order')
+            ->authorizeReorder(fn (): bool => auth()->user()?->can('reorder', Process::class) ?? false)
             ->columns([
                 TextColumn::make('sort_order')
                     ->label('Orden')
                     ->badge()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('name')
                     ->label('Etapa')
                     ->searchable(),
@@ -33,20 +36,24 @@ class ProcessesTable
                     ->label('Departamento')
                     ->badge()
                     ->placeholder('—')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('estimated_minutes')
                     ->label('Est.')
                     ->suffix(' min')
                     ->placeholder('—')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('color')
                     ->label('Color')
                     ->badge()
                     ->color(fn ($state) => $state ?: 'gray')
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_active')
                     ->label('Activa')
-                    ->boolean(),
+                    ->boolean()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('department')

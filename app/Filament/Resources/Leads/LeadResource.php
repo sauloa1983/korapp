@@ -9,10 +9,12 @@ use App\Filament\Resources\Leads\RelationManagers\VisitsRelationManager;
 use App\Filament\Resources\Leads\Schemas\LeadForm;
 use App\Filament\Resources\Leads\Tables\LeadsTable;
 use App\Models\Lead;
+use App\Support\CommercialScope;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class LeadResource extends Resource
@@ -21,9 +23,9 @@ class LeadResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-user-plus';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ventas';
+    protected static string|UnitEnum|null $navigationGroup = 'Comercial';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationLabel = 'Prospectos';
 
@@ -32,6 +34,11 @@ class LeadResource extends Resource
     protected static ?string $pluralModelLabel = 'Prospectos';
 
     protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return CommercialScope::constrain(parent::getEloquentQuery());
+    }
 
     public static function form(Schema $schema): Schema
     {

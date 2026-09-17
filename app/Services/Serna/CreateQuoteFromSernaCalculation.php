@@ -274,9 +274,9 @@ class CreateQuoteFromSernaCalculation
         };
 
         $name = match ($sku) {
-            'SERNA-LAMINA' => 'Lámina acrílica Serna',
+            'SERNA-LAMINA' => 'Lámina acrílica',
             'SERNA-MANUAL' => 'Transporte / instalación / valor manual',
-            default => 'Servicio / manufactura Serna',
+            default => 'Servicio / manufactura',
         };
 
         $itemType = match ($sku) {
@@ -337,7 +337,7 @@ class CreateQuoteFromSernaCalculation
 
         $description = implode(' · ', $parts);
         if ($description === '') {
-            $description = $typeLabel !== '' ? $typeLabel : 'Ítem Serna';
+            $description = $typeLabel !== '' ? $typeLabel : 'Ítem de cotización';
         }
 
         return mb_substr($description, 0, 2000, 'UTF-8');
